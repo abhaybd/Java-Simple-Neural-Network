@@ -9,9 +9,11 @@ public class NeuralNetwork {
 		NeuralNetwork net = new NeuralNetwork(new int[]{2,2,1});
 		int[][] inputs = new int[][]{
 			{1,1},
-			{0,1}
+			{0,1},
+			{1,0},
+			{0,0}
 		};
-		double[] output = new double[]{1,0};
+		double[] output = new double[]{0,1,1,0};
 		net.train(inputs, output, 0.25);
 		//net.setWeights();
 		String response = "";
@@ -119,7 +121,7 @@ public class NeuralNetwork {
 				System.out.println(Arrays.toString(inputs[i]));
 				double sum = evaluate(inputs[i]);//get sum
 				double result = sigmoid(sum);
-				double error = outputs[i]-result;
+				double error = Math.pow(outputs[i]-result,2)/2;
 				
 				System.out.println("Result: " + result);
 				
@@ -147,8 +149,7 @@ public class NeuralNetwork {
 				
 			}
 			runs++;
-			if(errorCount == 0||runs>=200000) break;
-			//break;
+			if(runs>=200000) break;
 		}
 		System.out.println("\nFinished!");
 		printWeights();

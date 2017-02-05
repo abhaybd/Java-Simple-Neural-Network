@@ -8,12 +8,12 @@ public class FirstNeuralNetwork {
 	public static void main(String[] args){
 		FirstNeuralNetwork net = new FirstNeuralNetwork();
 		Integer[][][] training = new Integer[][][]{
-			{{0,1},{0}},
-			{{0,0},{0}},
-			{{1,1},{1}},
-			{{1,0},{0}}
+			{{1,0,1},{0}},
+			{{1,0,0},{1}},
+			{{1,1,1},{0}},
+			{{1,1,0},{0}}
 		};
-		BigDecimal[] weights = new BigDecimal[]{BigDecimal.ZERO,BigDecimal.ZERO};
+		BigDecimal[] weights = new BigDecimal[]{BigDecimal.ZERO,BigDecimal.ZERO,BigDecimal.ZERO};
 		net.learn(training, weights, 1, new BigDecimal("0.1"));
 		String response = "";
 		Scanner input = new Scanner(System.in);
