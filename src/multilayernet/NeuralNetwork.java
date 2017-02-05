@@ -120,27 +120,31 @@ public class NeuralNetwork {
 			for(int i = 0; i < inputs.length; i++){
 				System.out.println(Arrays.toString(inputs[i]));
 				double sum = evaluate(inputs[i]);//get sum
-				double result = sigmoid(sum);
-				double error = Math.pow(outputs[i]-result,2)/2;
+				double result = sigmoid(sum); //calculate final result
+				double error = Math.pow(outputs[i]-result,2)/2; //calculate mean squared error
 				
-				System.out.println("Result: " + result);
+				System.out.println("Result: " + result); //print result
 				
-				if(Math.abs(error) > 0.5) errorCount++;
+				if(Math.abs(error) > 0.5) errorCount++; //increment error (error margin not used right now)
 				
+				//iterate through all hidden neurons and adjust the weights to output. (learningRate * error * neuron output * result * (1-result)
 				for(Neuron neuron:layers[1].getNeurons()){
 					for(Dendrite dendrite:neuron.getDendrites()){
 						dendrite.adjustWeight(learningRate * error * neuron.tempSum * result * (1-result));
 					}
 				}
 				
+				//adjust the weights between input and hidden layer (learningRate * error * input * hidden layer output * (1-hidden layer output)
 				for(Neuron neuron:layers[0].getNeurons()){
 					for(Dendrite dendrite:neuron.getDendrites()){
 						dendrite.adjustWeight(learningRate * error * neuron.tempSum * dendrite.getEnd().tempSum * (1-dendrite.getEnd().tempSum));
 					}
 				}
 				
-				printWeights();
+				printWeights(); //print new weights
 				System.out.println("-------------------------------");
+				
+				//reset the neuron values
 				for(NeuronLayer layer:layers){
 					for(Neuron neuron:layer.getNeurons()){
 						neuron.tempSum = 0;

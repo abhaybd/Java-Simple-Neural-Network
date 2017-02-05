@@ -12,7 +12,7 @@ public class Neuron {
 	}
 	
 	public double activationFunction(){
-		tempSum = 1/(1+Math.pow(Math.E, -tempSum));
+		tempSum = 1/(1+Math.pow(Math.E, -tempSum)); //sigmoid the neuron value
 		return tempSum;
 	}
 	
