@@ -8,6 +8,7 @@ public class Dendrite {
 		this.weight = weight;
 		this.start = start;
 		this.end = end;
+		end.addInput(this);
 	}
 	
 	public Neuron getStart(){

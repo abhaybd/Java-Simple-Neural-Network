@@ -1,0 +1,14 @@
+//iterate through all hidden neurons and adjust the weights to output. (learningRate * error * neuron output * result * (1-result)
+				for(Neuron neuron:layers[1].getNeurons()){
+					for(Dendrite dendrite:neuron.getDendrites()){
+						dendrite.adjustWeight(learningRate * error * neuron.output * result * (1-result));
+					}
+				}
+				
+				//adjust the weights between input and hidden layer (learningRate * error * input * hidden layer output * (1-hidden layer output)
+				for(int j = 0; j < layers[0].getNeurons().length; j++){
+					Neuron neuron = layers[0].getNeurons()[j];
+					for(Dendrite dendrite:neuron.getDendrites()){
+						dendrite.adjustWeight(learningRate * error * inputs[i][j] * dendrite.getEnd().weightedSum * (1-dendrite.getEnd().weightedSum));
+					}
+				}
