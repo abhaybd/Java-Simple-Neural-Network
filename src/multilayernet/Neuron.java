@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class Neuron {
+public class Neuron implements java.io.Serializable{
+	private static final long serialVersionUID = 1L;
 	public Dendrite[] dendrites;
 	private NeuronLayer layer;
 	public double weightedSum;

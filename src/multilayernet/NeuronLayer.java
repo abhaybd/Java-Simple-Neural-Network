@@ -2,7 +2,8 @@ package multilayernet;
 
 import java.util.Arrays;
 
-public class NeuronLayer {
+public class NeuronLayer implements java.io.Serializable{
+	private static final long serialVersionUID = 1L;
 	private Neuron[] neurons;
 	private NeuralNetwork network;
 	private boolean isInput;

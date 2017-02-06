@@ -1,6 +1,7 @@
 package multilayernet;
 
-public class Dendrite {
+public class Dendrite implements java.io.Serializable{
+	private static final long serialVersionUID = 1L;
 	public double weight;
 	private Neuron start, end;
 	private double lastChange;

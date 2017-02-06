@@ -3,7 +3,8 @@ package multilayernet;
 import java.util.Arrays;
 import java.util.Scanner;
 
-public class NeuralNetwork {
+public class NeuralNetwork implements java.io.Serializable{
+	private static final long serialVersionUID = 1L;
 	
 	public static void main(String[] args){
 		NeuralNetwork net = new NeuralNetwork(new int[]{2,2,1});
@@ -142,12 +143,12 @@ public class NeuralNetwork {
 		while(true){
 			double errorSum = 0;
 			for(int i = 0; i < inputs.length; i++){
-				System.out.println(Arrays.toString(inputs[i]));
+				//System.out.println(Arrays.toString(inputs[i]));
 				double sum = evaluate(inputs[i]);//get sum
 				double result = sigmoid(sum); //calculate final result
 				double error = Math.pow(outputs[i]-result,2)/2; //calculate mean squared error
 				errorSum += error;
-				System.out.println("Result: " + result); //print result
+				//System.out.println("Result: " + result); //print result
 				
 				getErrors(result, outputs[i]);
 				updateWeights(learningRate);
@@ -162,10 +163,11 @@ public class NeuralNetwork {
 				}
 				
 			}
-			if(runs == 0) startError = errorSum/4;
-			System.out.println("Epoch: " + runs + ", error: " + errorSum/4);
+			double avgError = errorSum/inputs.length;
+			if(runs == 0) startError = avgError;
+			System.out.println("Epoch: " + runs + ", error: " + avgError);
 			runs++;
-			if(runs>=2000000 || errorSum/4<=Math.pow(0.02, 2)/2) break;
+			if(runs>=2000000 || avgError <= Math.pow(0.03, 2)/2) break;
 		}
 		System.out.println("\nFinished!");
 		System.out.println("Start error: " + startError);
