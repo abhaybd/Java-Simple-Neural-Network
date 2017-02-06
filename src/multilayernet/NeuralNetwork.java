@@ -7,22 +7,21 @@ public class NeuralNetwork {
 	
 	public static void main(String[] args){
 		NeuralNetwork net = new NeuralNetwork(new int[]{2,2,1});
-		int[][] inputs = new int[][]{
+		double[][] inputs = new double[][]{
 			{0,1},
 			{1,0},
-			{1,1},
-			{0,0}
+			{0,0},
+			{1,1}
 		};
 		double[] output = new double[]{1,1,0,0};
 		net.train(inputs, output, 0.25);
-		//net.setWeights();
 		String response = "";
 		Scanner input = new Scanner(System.in);
 		while(!(response = input.nextLine()).equals("quit")){
 			String[] parts = response.split(",");
-			int[] nums = new int[parts.length];
+			double[] nums = new double[parts.length];
 			for(int i = 0; i < parts.length; i++){
-				nums[i] = Integer.parseInt(parts[i]);
+				nums[i] = Double.parseDouble(parts[i]);
 			}
 			System.out.println(net.guess(nums));
 			
@@ -48,7 +47,7 @@ public class NeuralNetwork {
 		}
 	}
 	
-	public double guess(int[] input){
+	public double guess(double[] input){
 		for(NeuronLayer layer:layers){
 			for(Neuron neuron:layer.getNeurons()){
 				neuron.weightedSum = 0;
@@ -71,7 +70,7 @@ public class NeuralNetwork {
 		}
 	}
 	
-	private double evaluate(int[] input){
+	private double evaluate(double[] input){
 		for(int i = 0; i < layers[0].getNeurons().length; i++){
 			layers[0].getNeurons()[i].output = input[i];
 		}
@@ -135,7 +134,7 @@ public class NeuralNetwork {
 		}
 	}
 	
-	public void train(int[][] inputs, double[] outputs, double learningRate){
+	public void train(double[][] inputs, double[] outputs, double learningRate){
 		randomWeights();
 		//setWeights();
 		int runs = 0;
@@ -166,7 +165,7 @@ public class NeuralNetwork {
 			if(runs == 0) startError = errorSum/4;
 			System.out.println("Epoch: " + runs + ", error: " + errorSum/4);
 			runs++;
-			if(runs>=200000) break;
+			if(runs>=2000000 || errorSum/4<=Math.pow(0.02, 2)/2) break;
 		}
 		System.out.println("\nFinished!");
 		System.out.println("Start error: " + startError);
