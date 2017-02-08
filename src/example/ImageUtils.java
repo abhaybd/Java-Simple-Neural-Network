@@ -4,8 +4,12 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Arrays;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
@@ -14,15 +18,52 @@ import javax.swing.JLabel;
 
 public class ImageUtils {
 	public static void main(String[] args) throws IOException{
-		BufferedImage img = ImageIO.read(new File("data/butterfly.jpg"));
-		monoColor(img);
-		JFrame frame = new JFrame();
-		JLabel label = new JLabel();
-		label.setIcon(new ImageIcon(img));
-		frame.getContentPane().add(label);
-		frame.pack();
-		frame.setVisible(true);
+		double[] labels = getLabels("data/test-labels.idx1-ubyte");
+		BufferedImage[] images = getImages("data/train-images.idx3-ubyte");
+		System.out.println(labels.length + " : " + images.length);
 	}
+	
+	public static double[] getLabels(String path) throws IOException{
+		try(DataInputStream in = new DataInputStream(new FileInputStream(path))){
+			in.readInt();
+			int numLabels = in.readInt();
+			double[] labels = new double[100];
+			for(int i = 0; i < 100; i++){
+				labels[i] = ((double)in.read())/10d;
+			}
+			return labels;
+		}
+		catch(IOException e){
+			throw e;
+		}
+	}
+	
+	public static BufferedImage[] getImages(String path) throws IOException{
+		try(DataInputStream in = new DataInputStream(new FileInputStream(path))){
+			in.readInt();
+			int numImages = in.readInt();
+			int rows = in.readInt();
+			int cols = in.readInt();
+			
+			BufferedImage[] images = new BufferedImage[100];
+			
+			for(int i = 0; i < 100; i++){
+				BufferedImage image = new BufferedImage(rows,cols,BufferedImage.TYPE_INT_RGB);
+				for(int x = 0; x < rows; x++){
+					for(int y = 0; y < cols; y++){
+						int val = in.read();
+						image.setRGB(x, y, new Color(val,val,val).getRGB());
+					}
+				}
+				images[i] = image;
+			}
+			
+			return images;
+		} catch (IOException e) {
+			throw e;
+		}
+	}
+	
 	public static void monoColor(BufferedImage img){
 		for(int i = 0; i < img.getWidth(); i++){
 			for(int j = 0; j < img.getHeight(); j++){

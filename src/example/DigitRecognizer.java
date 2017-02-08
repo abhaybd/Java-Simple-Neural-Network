@@ -2,8 +2,10 @@ package example;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.io.ObjectOutputStream;
+import java.util.Arrays;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
@@ -16,36 +18,34 @@ public class DigitRecognizer {
 	public static final int WIDTH = 28;
 	public static final int HEIGHT = 28;
 	public static void main(String[] args) throws IOException{
-		
+		new DigitRecognizer("data/train-labels.idx1-ubyte","data/train-images.idx3-ubyte");
+	}
+	
+	static void saveNeuralNetwork(NeuralNetwork network, String path){
+		try{
+			FileOutputStream fileOut = new FileOutputStream(path);
+			ObjectOutputStream out = new ObjectOutputStream(fileOut);
+			out.writeObject(network);
+			out.close();
+			fileOut.close();
+		}
+		catch(IOException e){
+			e.printStackTrace();
+		}
 	}
 	
 	private NeuralNetwork network;
-	public DigitRecognizer(String path){
-		File folder = new File(path);
-		if(!folder.isDirectory()){
-			System.err.println("Supplied path is not a folder!");
-			return;
+	public DigitRecognizer(String labelPath, String imagePath) throws IOException{
+		BufferedImage[] images = ImageUtils.getImages(imagePath);
+		double[] outputs = ImageUtils.getLabels(labelPath);
+		System.out.println(Arrays.toString(outputs));
+		double[][] inputs = new double[images.length][];
+		for(int i = 0; i < inputs.length; i++){
+			inputs[i] = getDataFromBufferedImage(images[i]);
 		}
-		File[] images = folder.listFiles();
-		ArrayList<double[]> inputList = new ArrayList<double[]>();
-		ArrayList<Double> outputList = new ArrayList<Double>();
-		for(File file:images){
-			if(!file.getName().endsWith("jpg") && !file.getName().endsWith("png") && !file.getName().endsWith("jpeg")) continue;
-			try {
-				BufferedImage img = ImageUtils.toBufferedImage(ImageIO.read(file).getScaledInstance(WIDTH, HEIGHT, BufferedImage.SCALE_FAST));
-				ImageUtils.monoColor(img);
-				double[] input = getDataFromBufferedImage(img);
-				String result = file.getName().substring(file.getName().lastIndexOf(".")-3,file.getName().lastIndexOf("."));
-				outputList.add(Double.parseDouble(result));
-				inputList.add(input);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		double[][] inputs = inputList.toArray(new double[0][0]);
-		double[] outputs = arrayListToArray(outputList);
 		network = new NeuralNetwork(new int[]{WIDTH*HEIGHT,WIDTH*HEIGHT/2,1});
-		network.train(inputs, outputs, 0.25);
+		network.train(inputs, outputs, 1);
+		saveNeuralNetwork(network,"DigitRecognizer.net");
 	}
 	
 	public int guess(String path) throws IOException{
@@ -53,14 +53,6 @@ public class DigitRecognizer {
 		double[] input = getDataFromBufferedImage(image);
 		double result = network.guess(input);
 		return (int) (result*10);
-	}
-	
-	double[] arrayListToArray(ArrayList<Double> list){
-		double[] toReturn = new double[list.size()];
-		for(int i = 0; i < list.size(); i++){
-			toReturn[i] = list.get(i);
-		}
-		return toReturn;
 	}
 	
 	double[] getDataFromBufferedImage(BufferedImage img){

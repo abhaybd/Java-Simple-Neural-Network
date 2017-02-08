@@ -1,5 +1,7 @@
 package neuralnetwork;
 
+import java.util.HashSet;
+import java.util.Random;
 import java.util.Scanner;
 
 public class NeuralNetwork implements java.io.Serializable{
@@ -142,20 +144,44 @@ public class NeuralNetwork implements java.io.Serializable{
 	public void train(double[][] inputs, double[] outputs, double learningRate){
 		int runs = 0;
 		double startError = 0;
+		long lastTime = System.currentTimeMillis();
 		while(true){
 			double errorSum = 0;
-			for(int i = 0; i < inputs.length; i++){
-				double sum = evaluate(inputs[i]);//get sum
+			double[][] inputSegment;
+			double[] outputSegment;
+			if(inputs.length >=10000){
+				inputSegment = new double[100][];
+				outputSegment = new double[100];
+				HashSet<Integer> indexes = new HashSet<Integer>();
+				Random random = new Random();
+				int index = 0;
+				while(index < inputSegment.length){
+					int rand = random.nextInt(inputs.length);
+					if(indexes.add(rand)){
+						inputSegment[index] = inputs[rand];
+						outputSegment[index] = outputs[rand];
+						index++;
+					}
+				}
+				System.out.println("Smaller dataset of size: " + inputSegment.length);
+			}
+			else {
+				inputSegment = inputs;
+				outputSegment = outputs;
+			}
+			for(int i = 0; i < inputSegment.length; i++){
+				double sum = evaluate(inputSegment[i]);//get sum
 				double result = sigmoid(sum); //calculate final result
-				double error = Math.pow(outputs[i]-result,2)/2; //calculate mean squared error
+				double error = Math.pow(outputSegment[i]-result,2)/2; //calculate mean squared error
 				errorSum += error;
-				
-				getErrors(result, outputs[i]);
+				System.out.println("Error: " + error);
+				getErrors(result, outputSegment[i]);
 				updateWeights(learningRate);
 			}
-			double avgError = errorSum/inputs.length;
+			double avgError = errorSum/inputSegment.length;
 			if(runs == 0) startError = avgError;
 			System.out.println("Epoch: " + runs + ", error: " + avgError);
+			//lastTime = System.currentTimeMillis();
 			runs++;
 			if(runs>=2000000 || avgError <= Math.pow(0.03, 2)/2) break;
 		}
