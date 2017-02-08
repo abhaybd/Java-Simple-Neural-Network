@@ -11,7 +11,6 @@ import neuralnetwork.NeuralNetwork;
 import neuralnetwork.InputUtils.InvalidInputException;
 
 public class NetworkBuilder {
-	public static final double learningRate = 0.25;
 	public static void main(String[] args){
 		NeuralNetwork network = new NeuralNetwork(new int[]{2,3,1});
 		try {
@@ -39,6 +38,7 @@ public class NetworkBuilder {
 			e.printStackTrace();
 		}
 	}
+	public static final double learningRate = 0.25;
 	
 	static void saveNeuralNetwork(NeuralNetwork network, String path){
 		try{

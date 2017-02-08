@@ -27,9 +27,9 @@ public class ImageUtils {
 		try(DataInputStream in = new DataInputStream(new FileInputStream(path))){
 			in.readInt();
 			int numLabels = in.readInt();
-			double[] labels = new double[100];
-			for(int i = 0; i < 100; i++){
-				labels[i] = ((double)in.read())/10d;
+			double[] labels = new double[numLabels];
+			for(int i = 0; i < labels.length; i++){
+				labels[i] = ((double)in.read());
 			}
 			return labels;
 		}
@@ -45,9 +45,9 @@ public class ImageUtils {
 			int rows = in.readInt();
 			int cols = in.readInt();
 			
-			BufferedImage[] images = new BufferedImage[100];
+			BufferedImage[] images = new BufferedImage[numImages];
 			
-			for(int i = 0; i < 100; i++){
+			for(int i = 0; i < images.length; i++){
 				BufferedImage image = new BufferedImage(rows,cols,BufferedImage.TYPE_INT_RGB);
 				for(int x = 0; x < rows; x++){
 					for(int y = 0; y < cols; y++){
@@ -73,6 +73,15 @@ public class ImageUtils {
 				img.setRGB(i,j, mono.getRGB());
 			}
 		}
+	}
+	
+	public static void showImage(BufferedImage image){
+		JFrame frame = new JFrame();
+		frame.setSize(280, 280);
+		JLabel label = new JLabel();
+		label.setIcon(new ImageIcon(image.getScaledInstance(280, 280, BufferedImage.SCALE_FAST)));
+		frame.getContentPane().add(label);
+		frame.setVisible(true);
 	}
 	
 	public static BufferedImage toBufferedImage(Image img)

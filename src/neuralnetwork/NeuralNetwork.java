@@ -144,12 +144,11 @@ public class NeuralNetwork implements java.io.Serializable{
 	public void train(double[][] inputs, double[] outputs, double learningRate){
 		int runs = 0;
 		double startError = 0;
-		long lastTime = System.currentTimeMillis();
 		while(true){
 			double errorSum = 0;
 			double[][] inputSegment;
 			double[] outputSegment;
-			if(inputs.length >=10000){
+			if(inputs.length >=1000000){
 				inputSegment = new double[100][];
 				outputSegment = new double[100];
 				HashSet<Integer> indexes = new HashSet<Integer>();
@@ -174,14 +173,13 @@ public class NeuralNetwork implements java.io.Serializable{
 				double result = sigmoid(sum); //calculate final result
 				double error = Math.pow(outputSegment[i]-result,2)/2; //calculate mean squared error
 				errorSum += error;
-				System.out.println("Error: " + error);
+				//System.out.println("Error: " + error);
 				getErrors(result, outputSegment[i]);
 				updateWeights(learningRate);
 			}
 			double avgError = errorSum/inputSegment.length;
 			if(runs == 0) startError = avgError;
 			System.out.println("Epoch: " + runs + ", error: " + avgError);
-			//lastTime = System.currentTimeMillis();
 			runs++;
 			if(runs>=2000000 || avgError <= Math.pow(0.03, 2)/2) break;
 		}

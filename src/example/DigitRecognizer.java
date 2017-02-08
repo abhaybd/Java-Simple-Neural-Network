@@ -1,5 +1,8 @@
 package example;
 
+import java.awt.Color;
+import java.awt.Rectangle;
+import java.awt.geom.Area;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -37,14 +40,15 @@ public class DigitRecognizer {
 	private NeuralNetwork network;
 	public DigitRecognizer(String labelPath, String imagePath) throws IOException{
 		BufferedImage[] images = ImageUtils.getImages(imagePath);
+		ImageUtils.showImage(images[2]);
 		double[] outputs = ImageUtils.getLabels(labelPath);
 		System.out.println(Arrays.toString(outputs));
 		double[][] inputs = new double[images.length][];
 		for(int i = 0; i < inputs.length; i++){
 			inputs[i] = getDataFromBufferedImage(images[i]);
 		}
-		network = new NeuralNetwork(new int[]{WIDTH*HEIGHT,WIDTH*HEIGHT/2,1});
-		network.train(inputs, outputs, 1);
+		network = new NeuralNetwork(new int[]{3,2,1});
+		network.train(inputs, outputs, 0.25);
 		saveNeuralNetwork(network,"DigitRecognizer.net");
 	}
 	
@@ -56,12 +60,21 @@ public class DigitRecognizer {
 	}
 	
 	double[] getDataFromBufferedImage(BufferedImage img){
-		double[] toReturn = new double[img.getHeight()*img.getWidth()];
+		double[] toReturn = new double[3];
+		Area a = new Area();
+		double numPixels = 0;
 		for(int i = 0; i < img.getWidth(); i++){
 			for(int j = 0; j < img.getHeight(); j++){
-				toReturn[img.getWidth()*j+i] = img.getRGB(i, j);
+				if(!new Color(img.getRGB(i, j)).equals(Color.BLACK)){
+					a.add(new Area(new Rectangle(i,j,1,1)));
+					numPixels++;
+				}
 			}
 		}
+		Rectangle bounds = a.getBounds();
+		toReturn[0] = bounds.getCenterX();
+		toReturn[1] = bounds.getCenterY();
+		toReturn[2] = numPixels;
 		return toReturn;
 	}
 	
