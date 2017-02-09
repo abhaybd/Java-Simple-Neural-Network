@@ -1,7 +1,5 @@
 package neuralnetwork;
 
-import java.util.HashSet;
-import java.util.Random;
 import java.util.Scanner;
 
 public class NeuralNetwork implements java.io.Serializable{
@@ -146,42 +144,20 @@ public class NeuralNetwork implements java.io.Serializable{
 		double startError = 0;
 		while(true){
 			double errorSum = 0;
-			double[][] inputSegment;
-			double[] outputSegment;
-			if(inputs.length >=1000000){
-				inputSegment = new double[100][];
-				outputSegment = new double[100];
-				HashSet<Integer> indexes = new HashSet<Integer>();
-				Random random = new Random();
-				int index = 0;
-				while(index < inputSegment.length){
-					int rand = random.nextInt(inputs.length);
-					if(indexes.add(rand)){
-						inputSegment[index] = inputs[rand];
-						outputSegment[index] = outputs[rand];
-						index++;
-					}
-				}
-				System.out.println("Smaller dataset of size: " + inputSegment.length);
-			}
-			else {
-				inputSegment = inputs;
-				outputSegment = outputs;
-			}
-			for(int i = 0; i < inputSegment.length; i++){
-				double sum = evaluate(inputSegment[i]);//get sum
+			for(int i = 0; i < inputs.length; i++){
+				double sum = evaluate(inputs[i]);//get sum
 				double result = sigmoid(sum); //calculate final result
-				double error = Math.pow(outputSegment[i]-result,2)/2; //calculate mean squared error
+				double error = Math.pow(outputs[i]-result,2)/2; //calculate mean squared error
 				errorSum += error;
 				//System.out.println("Error: " + error);
-				getErrors(result, outputSegment[i]);
+				getErrors(result, outputs[i]);
 				updateWeights(learningRate);
 			}
-			double avgError = errorSum/inputSegment.length;
+			double avgError = errorSum/inputs.length;
 			if(runs == 0) startError = avgError;
 			System.out.println("Epoch: " + runs + ", error: " + avgError);
 			runs++;
-			if(runs>=2000000 || avgError <= Math.pow(0.03, 2)/2) break;
+			if(runs>=20000 || avgError <= Math.pow(0.03, 2)/2) break;
 		}
 		System.out.println("\nFinished!");
 		System.out.println("Start error: " + startError);

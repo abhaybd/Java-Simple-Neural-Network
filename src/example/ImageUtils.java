@@ -27,9 +27,10 @@ public class ImageUtils {
 		try(DataInputStream in = new DataInputStream(new FileInputStream(path))){
 			in.readInt();
 			int numLabels = in.readInt();
+			numLabels = 100;
 			double[] labels = new double[numLabels];
 			for(int i = 0; i < labels.length; i++){
-				labels[i] = ((double)in.read());
+				labels[i] = ((double)in.read())/10.0;
 			}
 			return labels;
 		}
@@ -42,6 +43,7 @@ public class ImageUtils {
 		try(DataInputStream in = new DataInputStream(new FileInputStream(path))){
 			in.readInt();
 			int numImages = in.readInt();
+			numImages = 100;
 			int rows = in.readInt();
 			int cols = in.readInt();
 			
@@ -52,7 +54,7 @@ public class ImageUtils {
 				for(int x = 0; x < rows; x++){
 					for(int y = 0; y < cols; y++){
 						int val = in.read();
-						image.setRGB(x, y, new Color(val,val,val).getRGB());
+						image.setRGB(y, x, new Color(val,val,val).getRGB());
 					}
 				}
 				images[i] = image;
