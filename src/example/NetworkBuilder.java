@@ -12,12 +12,12 @@ import neuralnetwork.InputUtils.InvalidInputException;
 
 public class NetworkBuilder {
 	public static void main(String[] args){
-		NeuralNetwork network = new NeuralNetwork(new int[]{2,3,1});
+		NeuralNetwork network = new NeuralNetwork(new int[]{2,3,1}, new int[]{0,0,0});
 		try {
 			//get inputs and output from disk
 			double[][] inputs = InputUtils.getInputFromFile("data/input.txt");
 			double[] output = InputUtils.getOutputFromFile("data/output.txt");
-			network.train(inputs, output, 0.1, 0.9, 1000000); //train the network
+			network.train(inputs, output, 0.25, 0, 1000000); //train the network
 			
 			saveNeuralNetwork(network,"data/network.net"); //save the network
 			

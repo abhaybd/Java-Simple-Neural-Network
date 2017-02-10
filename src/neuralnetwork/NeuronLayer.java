@@ -5,14 +5,20 @@ import java.util.Arrays;
 public class NeuronLayer implements java.io.Serializable{
 	private static final long serialVersionUID = 1L;
 	private Neuron[] neurons;
+	private Neuron[] bias;
 	private NeuralNetwork network;
 	private boolean isInput;
 	private boolean isOutput;
-	public NeuronLayer(NeuralNetwork network, int neurons){
+	public NeuronLayer(NeuralNetwork network, int neurons, int biasNeurons){
 		this.network = network;
 		this.neurons = new Neuron[neurons];
 		for(int i = 0; i < neurons; i++){
 			this.neurons[i] = new Neuron(this);
+		}
+		bias = new Neuron[biasNeurons];
+		for(int i = 0; i < biasNeurons; i++){
+			bias[i] = new Neuron(this);
+			bias[i].output = 1;
 		}
 		int index = Arrays.asList(network.getLayers()).indexOf(this);
 		isInput = index == 0;
@@ -33,8 +39,15 @@ public class NeuronLayer implements java.io.Serializable{
 	
 	public void setRandomWeights(NeuronLayer next){		
 		for(Neuron neuron:neurons){
-			neuron.setUpDendrites(next);
+			neuron.setUpDendrites(next,false);
 		}
+		for(Neuron neuron:bias){
+			neuron.setUpDendrites(next, true);
+		}
+	}
+	
+	public Neuron[] getBiasNeurons(){
+		return bias;
 	}
 	
 	public Neuron[] getNeurons(){

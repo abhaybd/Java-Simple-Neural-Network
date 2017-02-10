@@ -1,16 +1,13 @@
 package neuralnetwork;
 
-<<<<<<< HEAD
 import java.util.HashMap;
-=======
->>>>>>> origin/master
 import java.util.Scanner;
 
 public class NeuralNetwork implements java.io.Serializable{
 	private static final long serialVersionUID = 1L;
 	
 	public static void main(String[] args){
-		NeuralNetwork net = new NeuralNetwork(new int[]{2,2,1});
+		NeuralNetwork net = new NeuralNetwork(new int[]{2,2,1}, new int[]{1,0,0});
 		double[][] inputs = new double[][]{
 			{0,1},
 			{1,0},
@@ -18,7 +15,7 @@ public class NeuralNetwork implements java.io.Serializable{
 			{1,1}
 		};
 		double[] output = new double[]{1,1,0,0};
-		net.train(inputs, output, 0.1, 0.9, 100000);
+		net.train(inputs, output, 0.1, 0.9, 10000);
 		String response = "";
 		Scanner input = new Scanner(System.in);
 		while(!(response = input.nextLine()).equals("quit")){
@@ -34,22 +31,19 @@ public class NeuralNetwork implements java.io.Serializable{
 	}
 	
 	private NeuronLayer[] layers;
-	public NeuralNetwork(int[] layers){
+	public NeuralNetwork(int[] layers, int[] bias){
+		if(bias == null || bias.length != layers.length){
+			bias = new int[layers.length];
+		}
 		this.layers = new NeuronLayer[layers.length];
 		for(int i = 0; i < layers.length; i++){
-			this.layers[i] = new NeuronLayer(this,layers[i]);
+			this.layers[i] = new NeuronLayer(this,layers[i],bias[i]);
 		}
 		randomWeights();
 	}
 	
 	public NeuronLayer[] getLayers(){
 		return layers;
-	}
-	
-	private void randomWeights(){
-		for(int i = 0; i < layers.length-1; i++){
-			layers[i].setRandomWeights(layers[i+1]);
-		}
 	}
 	
 	public double guess(double[] input){
@@ -61,20 +55,39 @@ public class NeuralNetwork implements java.io.Serializable{
 		return sigmoid(evaluate(input));
 	}
 	
-	private void printWeights(){
-		for(int i = 0; i < layers.length-1; i++){
-			NeuronLayer layer = layers[i];
-			System.out.print("Layer " + i + ": ");
-			for(Neuron neuron:layer.getNeurons()){
-				for(Dendrite dendrite:neuron.getDendrites()){
-					System.out.print(dendrite.weight + ",");
-				}
-				System.out.print("    ");
+	public void train(double[][] inputs, double[] outputs, double learningRate, double momentum, int maxIterations){
+		int runs = 0;
+		double startError = 0;
+		while(true){
+			HashMap<Dendrite,Double> dendriteDeltaMap = new HashMap<>();
+			double errorSum = 0;
+			//if(runs>=maxIterations)break;
+			for(int i = 0; i < inputs.length; i++){
+				double sum = evaluate(inputs[i]);//get sum
+				double result = sigmoid(sum); //calculate final result
+				double error = Math.pow(outputs[i]-result,2)/2; //calculate mean squared error
+				errorSum += error;
+				//System.out.println("Error: " + error);
+				getErrors(result, outputs[i]);
+				updateWeights(dendriteDeltaMap, learningRate, momentum);
 			}
-			System.out.println();
+			double avgError = errorSum/inputs.length;
+			if(runs == 0) startError = avgError;
+			System.out.println("Epoch: " + runs + ", error: " + avgError);
+			runs++;
+			if(runs>=maxIterations || avgError <= Math.pow(0.03, 2)/2) break;
+		}
+		System.out.println("\nFinished!");
+		System.out.println("Start error: " + startError);
+		printWeights();
+	}
+
+	private void randomWeights(){
+		for(int i = 0; i < layers.length-1; i++){
+			layers[i].setRandomWeights(layers[i+1]);
 		}
 	}
-	
+
 	private double evaluate(double[] input){
 		//reset the neuron values
 		for(NeuronLayer layer:layers){
@@ -108,7 +121,7 @@ public class NeuralNetwork implements java.io.Serializable{
 		return 1/(1+Math.pow(Math.E, -x));
 	}
 	
-	void getErrors(double result, double expectedResult){
+	private void getErrors(double result, double expectedResult){
 		for(int i = layers.length - 1; i > 0; i--){
 			NeuronLayer layer = layers[i];
 			for(int j = 0; j < layer.getNeurons().length; j++){
@@ -131,7 +144,7 @@ public class NeuralNetwork implements java.io.Serializable{
 		}
 	}
 	
-	void updateWeights(HashMap<Dendrite,Double> dendriteDeltaMap, double learningRate, double momentum){
+	private void updateWeights(HashMap<Dendrite,Double> dendriteDeltaMap, double learningRate, double momentum){
 		for(int i = layers.length - 1; i > 0; i--){
 			NeuronLayer layer = layers[i];
 			for(Neuron neuron:layer.getNeurons()){
@@ -147,37 +160,23 @@ public class NeuralNetwork implements java.io.Serializable{
 		}
 	}
 	
-	public void train(double[][] inputs, double[] outputs, double learningRate, double momentum, int maxIterations){
-		int runs = 0;
-		double startError = 0;
-		while(true){
-			HashMap<Dendrite,Double> dendriteDeltaMap = new HashMap<>();
-			double errorSum = 0;
-			for(int i = 0; i < inputs.length; i++){
-				double sum = evaluate(inputs[i]);//get sum
-				double result = sigmoid(sum); //calculate final result
-				double error = Math.pow(outputs[i]-result,2)/2; //calculate mean squared error
-				errorSum += error;
-				//System.out.println("Error: " + error);
-				getErrors(result, outputs[i]);
-<<<<<<< HEAD
-				updateWeights(dendriteDeltaMap, learningRate, momentum);
-=======
-				updateWeights(learningRate);
->>>>>>> origin/master
+	private void printWeights(){
+		for(int i = 0; i < layers.length-1; i++){
+			NeuronLayer layer = layers[i];
+			System.out.print("Layer " + i + ": ");
+			for(Neuron neuron:layer.getNeurons()){
+				for(Dendrite dendrite:neuron.getDendrites()){
+					System.out.print(dendrite.weight + ",");
+				}
+				System.out.print("    ");
 			}
-			double avgError = errorSum/inputs.length;
-			if(runs == 0) startError = avgError;
-			System.out.println("Epoch: " + runs + ", error: " + avgError);
-			runs++;
-<<<<<<< HEAD
-			if(runs>=maxIterations || avgError <= Math.pow(0.03, 2)/2) break;
-=======
-			if(runs>=20000 || avgError <= Math.pow(0.03, 2)/2) break;
->>>>>>> origin/master
+			System.out.print("Bias: ");
+			for(Neuron neuron:layer.getBiasNeurons()){
+				for(Dendrite dendrite:neuron.getDendrites()){
+					System.out.print(dendrite.weight + ", ");
+				}
+			}
+			System.out.println();
 		}
-		System.out.println("\nFinished!");
-		System.out.println("Start error: " + startError);
-		printWeights();
 	}
 }

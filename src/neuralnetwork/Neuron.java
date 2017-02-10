@@ -57,11 +57,16 @@ public class Neuron implements java.io.Serializable{
 		return output*(1-output);
 	}
 	
-	public void setUpDendrites(NeuronLayer nextLayer){
+	public void setUpDendrites(NeuronLayer nextLayer, boolean isBias){
 		dendrites = new Dendrite[nextLayer.getNeurons().length];
 		Random rand = new Random();
 		for(int i = 0; i < dendrites.length; i++){
-			dendrites[i] = new Dendrite(this,nextLayer.getNeurons()[i],rand.nextDouble());
+			if(isBias) {
+				dendrites[i] = new Dendrite(this,nextLayer.getNeurons()[i],1);
+			}
+			else{
+				dendrites[i] = new Dendrite(this,nextLayer.getNeurons()[i],rand.nextDouble());				
+			}
 		}		
 	}
 	
