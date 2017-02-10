@@ -48,11 +48,7 @@ public class DigitRecognizer {
 			inputs[i] = getDataFromBufferedImage(images[i]);
 		}
 		network = new NeuralNetwork(new int[]{5,2,1});
-<<<<<<< HEAD
 		network.train(inputs, outputs, 0.1, 0.9, 99999999);
-=======
-		network.train(inputs, outputs, 1);
->>>>>>> origin/master
 		saveNeuralNetwork(network,"DigitRecognizer.net");
 	}
 	
