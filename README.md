@@ -5,6 +5,7 @@ A very rudimentary playground for my neural net experiments
 * Adjustable number of layers
 * Adjustable number of neurons per layer
 * Stochastic backpropogation
+* momentum
 * `guess()` method extrapolates data based on current weights
 * train based on data supplied in text files
 * train based on data supplied as arrays
