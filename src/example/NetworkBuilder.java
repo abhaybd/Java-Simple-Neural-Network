@@ -11,14 +11,13 @@ import neuralnetwork.NeuralNetwork;
 import neuralnetwork.InputUtils.InvalidInputException;
 
 public class NetworkBuilder {
-	public static final double learningRate = 0.25;
 	public static void main(String[] args){
 		NeuralNetwork network = new NeuralNetwork(new int[]{2,3,1});
 		try {
 			//get inputs and output from disk
 			double[][] inputs = InputUtils.getInputFromFile("data/input.txt");
 			double[] output = InputUtils.getOutputFromFile("data/output.txt");
-			network.train(inputs, output, learningRate); //train the network
+			network.train(inputs, output, 0.1, 0.9, 1000000); //train the network
 			
 			saveNeuralNetwork(network,"data/network.net"); //save the network
 			
