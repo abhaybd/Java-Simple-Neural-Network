@@ -1,6 +1,9 @@
 package neuralnetwork;
 
+<<<<<<< HEAD
 import java.util.HashMap;
+=======
+>>>>>>> origin/master
 import java.util.Scanner;
 
 public class NeuralNetwork implements java.io.Serializable{
@@ -157,13 +160,21 @@ public class NeuralNetwork implements java.io.Serializable{
 				errorSum += error;
 				//System.out.println("Error: " + error);
 				getErrors(result, outputs[i]);
+<<<<<<< HEAD
 				updateWeights(dendriteDeltaMap, learningRate, momentum);
+=======
+				updateWeights(learningRate);
+>>>>>>> origin/master
 			}
 			double avgError = errorSum/inputs.length;
 			if(runs == 0) startError = avgError;
 			System.out.println("Epoch: " + runs + ", error: " + avgError);
 			runs++;
+<<<<<<< HEAD
 			if(runs>=maxIterations || avgError <= Math.pow(0.03, 2)/2) break;
+=======
+			if(runs>=20000 || avgError <= Math.pow(0.03, 2)/2) break;
+>>>>>>> origin/master
 		}
 		System.out.println("\nFinished!");
 		System.out.println("Start error: " + startError);

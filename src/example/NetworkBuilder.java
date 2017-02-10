@@ -38,6 +38,7 @@ public class NetworkBuilder {
 			e.printStackTrace();
 		}
 	}
+	public static final double learningRate = 0.25;
 	
 	static void saveNeuralNetwork(NeuralNetwork network, String path){
 		try{
