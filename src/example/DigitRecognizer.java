@@ -47,8 +47,8 @@ public class DigitRecognizer {
 		for(int i = 0; i < inputs.length; i++){
 			inputs[i] = getDataFromBufferedImage(images[i]);
 		}
-		network = new NeuralNetwork(new int[]{5,2,1}, new int[]{1,1,0});
-		network.train(inputs, outputs, 0.1, 0.9, 100000);
+		network = new NeuralNetwork(new int[]{WIDTH*HEIGHT,WIDTH*HEIGHT/2,1}, new int[]{10,5,0});
+		network.train(inputs, outputs, 0.1, 0.9, 20);
 		saveNeuralNetwork(network,"DigitRecognizer.net");
 	}
 	
@@ -60,23 +60,13 @@ public class DigitRecognizer {
 	}
 	
 	static double[] getDataFromBufferedImage(BufferedImage img){
-		double[] toReturn = new double[5];
-		Area a = new Area();
-		double numPixels = 0;
+		double[] toReturn = new double[img.getWidth()*img.getHeight()];
+		int index = 0;
 		for(int i = 0; i < img.getWidth(); i++){
 			for(int j = 0; j < img.getHeight(); j++){
-				if(!new Color(img.getRGB(j,i)).equals(Color.BLACK)){
-					a.add(new Area(new Rectangle(j,i,1,1)));
-					numPixels++;
-				}
+				toReturn[index] = img.getRGB(j,i);
 			}
 		}
-		Rectangle bounds = a.getBounds();
-		toReturn[0] = bounds.getCenterX();
-		toReturn[1] = bounds.getCenterY();
-		toReturn[2] = bounds.getWidth();
-		toReturn[3] = bounds.getHeight();
-		toReturn[4] = numPixels;
 		return toReturn;
 	}
 	

@@ -1,13 +1,16 @@
 package neuralnetwork;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Scanner;
 
 public class NeuralNetwork implements java.io.Serializable{
 	private static final long serialVersionUID = 1L;
 	
 	public static void main(String[] args){
-		NeuralNetwork net = new NeuralNetwork(new int[]{2,2,1}, new int[]{1,0,0});
+		NeuralNetwork net = new NeuralNetwork(new int[]{2,2,1}, new int[]{1,1,0});
 		double[][] inputs = new double[][]{
 			{0,1},
 			{1,0},
@@ -15,7 +18,7 @@ public class NeuralNetwork implements java.io.Serializable{
 			{1,1}
 		};
 		double[] output = new double[]{1,1,0,0};
-		net.train(inputs, output, 0.1, 0.9, 10000);
+		net.train(inputs, output, 0.1, 0.9, 100000);
 		String response = "";
 		Scanner input = new Scanner(System.in);
 		while(!(response = input.nextLine()).equals("quit")){
@@ -112,6 +115,11 @@ public class NeuralNetwork implements java.io.Serializable{
 					}
 				}
 			}
+			for(Neuron bias:layers[i].getBiasNeurons()){
+				for(Dendrite dendrite:bias.getDendrites()){
+					dendrite.getEnd().weightedSum += bias.output * dendrite.weight;
+				}
+			}
 		}
 		double result = layers[layers.length-1].getNeurons()[0].weightedSum; //return the output of the first output neuron.
 		return result;
@@ -124,8 +132,17 @@ public class NeuralNetwork implements java.io.Serializable{
 	private void getErrors(double result, double expectedResult){
 		for(int i = layers.length - 1; i > 0; i--){
 			NeuronLayer layer = layers[i];
-			for(int j = 0; j < layer.getNeurons().length; j++){
-				Neuron neuron = layer.getNeurons()[j];
+			ArrayList<Neuron> neurons = new ArrayList<>();
+			for(Neuron n:layer.getNeurons()){
+				neurons.add(n);
+			}
+			if(layer.getBiasNeurons() != null && layer.getBiasNeurons().length > 0){
+				for(Neuron n:layer.getBiasNeurons()){
+					neurons.add(n);
+				}
+			}
+			for(int j = 0; j < neurons.size(); j++){
+				Neuron neuron = neurons.get(j);
 				double neuronError = 0;
 				if(i == layers.length - 1){
 					neuronError = neuron.getDerivative() * (result - expectedResult);
