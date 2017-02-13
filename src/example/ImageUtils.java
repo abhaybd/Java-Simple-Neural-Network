@@ -18,19 +18,23 @@ import javax.swing.JLabel;
 
 public class ImageUtils {
 	public static void main(String[] args) throws IOException{
-		double[] labels = getLabels("data/test-labels.idx1-ubyte");
-		BufferedImage[] images = getImages("data/train-images.idx3-ubyte");
+		double[][] labels = getLabels("data/t10k-labels.idx1-ubyte");
+		BufferedImage[] images = getImages("data/t10k-images.idx3-ubyte");
 		System.out.println(labels.length + " : " + images.length);
+		System.out.println(Arrays.toString(labels[1]));
 	}
 	
-	public static double[] getLabels(String path) throws IOException{
+	public static double[][] getLabels(String path) throws IOException{
 		try(DataInputStream in = new DataInputStream(new FileInputStream(path))){
 			in.readInt();
 			int numLabels = in.readInt();
 			numLabels = 100;
-			double[] labels = new double[numLabels];
+			double[][] labels = new double[numLabels][8];
 			for(int i = 0; i < labels.length; i++){
-				labels[i] = ((double)in.read())/10.0;
+				String binary = Integer.toBinaryString(in.read());
+				for(int j = 0; j < binary.length(); j++){
+					labels[i][j+(8-binary.length())] = Double.parseDouble(String.valueOf(binary.charAt(j)));
+				}
 			}
 			return labels;
 		}

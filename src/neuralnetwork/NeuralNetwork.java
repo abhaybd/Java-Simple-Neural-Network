@@ -1,13 +1,32 @@
 package neuralnetwork;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Scanner;
 
 public class NeuralNetwork implements java.io.Serializable{
 	private static final long serialVersionUID = 1L;
+	
+	public static void readFromDisk(String path){
+		File file = new File(path);
+		if(!file.exists() || file.isDirectory()){
+			
+		}
+		
+		try(DataInputStream in = new DataInputStream(new FileInputStream(file))){
+			int numLayers = in.readInt();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 	
 	public static void main(String[] args){
 		NeuralNetwork net = new NeuralNetwork(new int[]{2,2,1}, new int[]{1,1,0});
@@ -17,7 +36,7 @@ public class NeuralNetwork implements java.io.Serializable{
 			{0,0},
 			{1,1}
 		};
-		double[] output = new double[]{1,1,0,0};
+		double[][] output = new double[][]{{1},{1},{0},{0}};
 		net.train(inputs, output, 0.1, 0.9, 100000);
 		String response = "";
 		Scanner input = new Scanner(System.in);
@@ -27,13 +46,13 @@ public class NeuralNetwork implements java.io.Serializable{
 			for(int i = 0; i < parts.length; i++){
 				nums[i] = Double.parseDouble(parts[i]);
 			}
-			System.out.println(net.guess(nums));
+			System.out.println(Arrays.toString(net.guess(nums)));
 			
 		}
 		input.close();
 	}
 	
-	private NeuronLayer[] layers;
+	protected NeuronLayer[] layers;
 	public NeuralNetwork(int[] layers, int[] bias){
 		if(bias == null || bias.length != layers.length){
 			bias = new int[layers.length];
@@ -49,16 +68,11 @@ public class NeuralNetwork implements java.io.Serializable{
 		return layers;
 	}
 	
-	public double guess(double[] input){
-		for(NeuronLayer layer:layers){
-			for(Neuron neuron:layer.getNeurons()){
-				neuron.weightedSum = 0;
-			}
-		}
-		return sigmoid(evaluate(input));
+	public double[] guess(double[] input){
+		return evaluate(input);
 	}
 	
-	public void train(double[][] inputs, double[] outputs, double learningRate, double momentum, int maxIterations){
+	public void train(double[][] inputs, double[][] outputs, double learningRate, double momentum, int maxIterations){
 		int runs = 0;
 		double startError = 0;
 		while(true){
@@ -66,12 +80,11 @@ public class NeuralNetwork implements java.io.Serializable{
 			double errorSum = 0;
 			//if(runs>=maxIterations)break;
 			for(int i = 0; i < inputs.length; i++){
-				double sum = evaluate(inputs[i]);//get sum
-				double result = sigmoid(sum); //calculate final result
-				double error = Math.pow(outputs[i]-result,2)/2; //calculate mean squared error
+				double[] results = evaluate(inputs[i]);
+				double error = calculateAggregateError(results,outputs[i]); //calculate mean squared error
 				errorSum += error;
 				//System.out.println("Error: " + error);
-				getErrors(result, outputs[i]);
+				getErrors(results, outputs[i]);
 				updateWeights(dendriteDeltaMap, learningRate, momentum);
 			}
 			double avgError = errorSum/inputs.length;
@@ -84,14 +97,44 @@ public class NeuralNetwork implements java.io.Serializable{
 		System.out.println("Start error: " + startError);
 		printWeights();
 	}
-
-	private void randomWeights(){
-		for(int i = 0; i < layers.length-1; i++){
-			layers[i].setRandomWeights(layers[i+1]);
+	
+	public void writeToDisk(String path){
+		try(DataOutputStream out = new DataOutputStream(new FileOutputStream(new File(path)))) {
+			out.writeInt(layers.length);
+			for(NeuronLayer layer:layers){
+				out.writeInt(layer.getNeurons().length);
+				out.writeInt(layer.getBiasNeurons().length);
+			}
+			for(NeuronLayer nl:layers){
+				out.writeInt(nl.getNeurons().length);
+				for(Neuron n:nl.getNeurons()){
+					out.writeInt(n.getDendrites().length);
+					for(Dendrite d:n.getDendrites()){
+						out.writeDouble(d.getWeight());
+					}
+				}
+				out.writeInt(nl.getBiasNeurons().length);
+				for(Neuron n:nl.getBiasNeurons()){
+					out.writeInt(n.getDendrites().length);
+					for(Dendrite d:n.getDendrites()){
+						out.writeDouble(d.getWeight());
+					}
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
+	
+	private double calculateAggregateError(double[] results, double[] expectedResults){
+		double error = 0;
+		for(int i = 0; i < results.length; i++){
+			error += Math.pow(expectedResults[i] - results[i], 2)/2;
+		}
+		return error;
+	}
 
-	private double evaluate(double[] input){
+	private double[] evaluate(double[] input){
 		//reset the neuron values
 		for(NeuronLayer layer:layers){
 			for(Neuron neuron:layer.getNeurons()){
@@ -121,15 +164,26 @@ public class NeuralNetwork implements java.io.Serializable{
 				}
 			}
 		}
-		double result = layers[layers.length-1].getNeurons()[0].weightedSum; //return the output of the first output neuron.
-		return result;
+		
+		//get results
+		double[] results = new double[layers[layers.length-1].getNeurons().length];
+		for(int i = 0; i < results.length; i++){
+			results[i] = layers[layers.length-1].getNeurons()[i].getOutput();
+		}
+		return results;
 	}
 	
-	private double sigmoid(double x){
+	private void randomWeights(){
+		for(int i = 0; i < layers.length-1; i++){
+			layers[i].setRandomWeights(layers[i+1]);
+		}
+	}
+	
+	double sigmoid(double x){
 		return 1/(1+Math.pow(Math.E, -x));
 	}
 	
-	private void getErrors(double result, double expectedResult){
+	private void getErrors(double[] results, double[] expectedResults){
 		for(int i = layers.length - 1; i > 0; i--){
 			NeuronLayer layer = layers[i];
 			ArrayList<Neuron> neurons = new ArrayList<>();
@@ -145,7 +199,7 @@ public class NeuralNetwork implements java.io.Serializable{
 				Neuron neuron = neurons.get(j);
 				double neuronError = 0;
 				if(i == layers.length - 1){
-					neuronError = neuron.getDerivative() * (result - expectedResult);
+					neuronError = neuron.getDerivative() * (results[j] - expectedResults[j]);
 				}
 				else{
 					neuronError = neuron.getDerivative();

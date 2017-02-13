@@ -16,7 +16,7 @@ public class NetworkBuilder {
 		try {
 			//get inputs and output from disk
 			double[][] inputs = InputUtils.getInputFromFile("data/input.txt");
-			double[] output = InputUtils.getOutputFromFile("data/output.txt");
+			double[][] output = InputUtils.getOutputFromFile("data/output.txt");
 			network.train(inputs, output, 0.25, 0, 1000000); //train the network
 			
 			saveNeuralNetwork(network,"data/network.net"); //save the network

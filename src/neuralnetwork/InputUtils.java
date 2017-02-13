@@ -32,7 +32,7 @@ public class InputUtils {
 		}
 	}
 	
-	public static double[] getOutputFromFile(String path) throws FileNotFoundException, InvalidInputException{
+	public static double[][] getOutputFromFile(String path) throws FileNotFoundException, InvalidInputException{
 		File file = new File(path);
 		if(!file.exists() || file.isDirectory()){
 			System.err.println("Invalid file!");
@@ -40,19 +40,19 @@ public class InputUtils {
 		}
 		
 		try(Scanner in = new Scanner(file)){
-			ArrayList<Double> outputList = new ArrayList<Double>();
+			ArrayList<double[]> outputList = new ArrayList<double[]>();
 			while(in.hasNextLine()){
-				String line = in.nextLine();
-				if(isDouble(line)){
-					outputList.add(Double.parseDouble(line));
+				String[] parts = in.nextLine().split(",");
+				double[] inputs = new double[parts.length];
+				for(int i = 0; i < parts.length; i++){
+					if(isDouble(parts[i])){
+						inputs[i] = Double.parseDouble(parts[i]);
+					}
+					else throw new InvalidInputException();
 				}
-				else throw new InvalidInputException();
+				outputList.add(inputs);
 			}
-			double[] toReturn = new double[outputList.size()];
-			for(int i = 0; i < outputList.size(); i++){
-				toReturn[i] = outputList.get(i);
-			}
-			return toReturn;
+			return outputList.toArray(new double[0][0]);
 		} catch (FileNotFoundException e) {
 			throw e;
 		}

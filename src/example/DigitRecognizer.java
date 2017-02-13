@@ -1,8 +1,5 @@
 package example;
 
-import java.awt.Color;
-import java.awt.Rectangle;
-import java.awt.geom.Area;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -24,11 +21,13 @@ public class DigitRecognizer {
 		new DigitRecognizer("data/train-labels.idx1-ubyte","data/train-images.idx3-ubyte");
 	}
 	
-	static void saveNeuralNetwork(NeuralNetwork network, String path){
+	void saveNeuralNetwork(NeuralNetwork network, String path){
 		try{
 			FileOutputStream fileOut = new FileOutputStream(path);
 			ObjectOutputStream out = new ObjectOutputStream(fileOut);
-			out.writeObject(network);
+			out.defaultWriteObject();
+			
+			//out.writeObject(network);
 			out.close();
 			fileOut.close();
 		}
@@ -41,22 +40,28 @@ public class DigitRecognizer {
 	public DigitRecognizer(String labelPath, String imagePath) throws IOException{
 		BufferedImage[] images = ImageUtils.getImages(imagePath);
 		ImageUtils.showImage(images[2]);
-		double[] outputs = ImageUtils.getLabels(labelPath);
+		double[][] outputs = ImageUtils.getLabels(labelPath);
 		System.out.println(Arrays.toString(outputs));
 		double[][] inputs = new double[images.length][];
 		for(int i = 0; i < inputs.length; i++){
 			inputs[i] = getDataFromBufferedImage(images[i]);
 		}
-		network = new NeuralNetwork(new int[]{WIDTH*HEIGHT,WIDTH*HEIGHT/2,1}, new int[]{10,5,0});
-		network.train(inputs, outputs, 0.1, 0.9, 20);
-		saveNeuralNetwork(network,"DigitRecognizer.net");
+		network = new NeuralNetwork(new int[]{WIDTH*HEIGHT,WIDTH*HEIGHT/2,8}, new int[]{1,1,0});
+		network.train(inputs, outputs, 0.1, 0.9, 1);
+		//saveNeuralNetwork(network,"DigitRecognizer.net");
+		network.writeToDisk("DigitRecognizer.net");
+		System.out.println("Saved!");
 	}
 	
 	public int guess(String path) throws IOException{
 		BufferedImage image = ImageUtils.toBufferedImage(ImageIO.read(new File(path)).getScaledInstance(WIDTH, HEIGHT, BufferedImage.SCALE_FAST));
 		double[] input = getDataFromBufferedImage(image);
-		double result = network.guess(input);
-		return (int) (result*10);
+		double[] result = network.guess(input);
+		String binary = "";
+		for(int i = 0; i < result.length; i++){
+			binary += Math.round((float)result[i]);
+		}
+		return Integer.parseInt(binary, 2);
 	}
 	
 	static double[] getDataFromBufferedImage(BufferedImage img){
