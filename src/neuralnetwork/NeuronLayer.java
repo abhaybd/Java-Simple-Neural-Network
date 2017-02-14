@@ -20,9 +20,11 @@ public class NeuronLayer implements java.io.Serializable{
 			bias[i] = new Neuron(this);
 			bias[i].output = 1;
 		}
-		int index = Arrays.asList(network.getLayers()).indexOf(this);
-		isInput = index == 0;
-		isOutput = index == network.getLayers().length - 1;
+		if(network != null){
+			int index = Arrays.asList(network.getLayers()).indexOf(this);
+			isInput = index == 0;
+			isOutput = index == network.getLayers().length - 1;			
+		}
 	}
 	
 	public boolean isInput(){

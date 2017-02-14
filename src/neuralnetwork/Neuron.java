@@ -21,6 +21,10 @@ public class Neuron implements java.io.Serializable{
 		dendrites = new Dendrite[0];
 	}
 	
+	public void setDendrites(Dendrite[] dendrites){
+		this.dendrites = dendrites;
+	}
+	
 	public double getWeightedSum(){
 		return weightedSum;
 	}

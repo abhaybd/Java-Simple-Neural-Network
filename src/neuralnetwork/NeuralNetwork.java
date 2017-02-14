@@ -4,7 +4,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -15,21 +14,43 @@ import java.util.Scanner;
 public class NeuralNetwork implements java.io.Serializable{
 	private static final long serialVersionUID = 1L;
 	
-	public static void readFromDisk(String path){
+	public static NeuralNetwork readFromDisk(String path){
 		File file = new File(path);
 		if(!file.exists() || file.isDirectory()){
-			
+			return null;
 		}
 		
 		try(DataInputStream in = new DataInputStream(new FileInputStream(file))){
 			int numLayers = in.readInt();
+			NeuronLayer[] layers = new NeuronLayer[numLayers];
+			for(int a= 0; a < numLayers; a++){
+				layers[a] = new NeuronLayer(null,in.readInt(),in.readInt());
+			}
+			for(int i = 0; i < layers.length-1; i++){
+				NeuronLayer layer = layers[i];
+				for(int j = 0; j < layer.getNeurons().length; j++){
+					Dendrite[] dendrites = new Dendrite[in.readInt()];
+					for(int k = 0; k < layers[i+1].getNeurons().length; k++){
+						dendrites[k] = new Dendrite(layer.getNeurons()[j],layers[i+1].getNeurons()[k],in.readDouble());
+					}
+				}
+				for(int j = 0; j < layer.getBiasNeurons().length; j++){
+					Dendrite[] dendrites = new Dendrite[in.readInt()];
+					for(int k = 0; k < layers[i+1].getNeurons().length; k++){
+						dendrites[k] = new Dendrite(layer.getBiasNeurons()[j],layers[i+1].getNeurons()[k],in.readDouble());
+					}
+				}
+			}
+			return new NeuralNetwork(layers);
+			
 		} catch (IOException e) {
 			e.printStackTrace();
+			return null;
 		}
 	}
 	
 	public static void main(String[] args){
-		NeuralNetwork net = new NeuralNetwork(new int[]{2,2,1}, new int[]{1,1,0});
+		NeuralNetwork net = new NeuralNetwork(new int[]{2,2,1}, new int[]{1,1,0}, true, "XOR", 4500, 0.03f);
 		double[][] inputs = new double[][]{
 			{0,1},
 			{1,0},
@@ -53,7 +74,19 @@ public class NeuralNetwork implements java.io.Serializable{
 	}
 	
 	protected NeuronLayer[] layers;
+	private DataVisualizer dv = null;
 	public NeuralNetwork(int[] layers, int[] bias){
+		init(layers,bias);
+	}
+	
+	public NeuralNetwork(int[] layers, int[] bias, boolean visualize, String title, float scale, float threshold){
+		init(layers, bias);
+		if(visualize){
+			dv = new DataVisualizer(title,scale,threshold);
+		}
+	}
+	
+	private void init(int[] layers, int[] bias){
 		if(bias == null || bias.length != layers.length){
 			bias = new int[layers.length];
 		}
@@ -62,6 +95,10 @@ public class NeuralNetwork implements java.io.Serializable{
 			this.layers[i] = new NeuronLayer(this,layers[i],bias[i]);
 		}
 		randomWeights();
+	}
+	
+	public NeuralNetwork(NeuronLayer[] layers){
+		this.layers = layers;
 	}
 	
 	public NeuronLayer[] getLayers(){
@@ -89,13 +126,14 @@ public class NeuralNetwork implements java.io.Serializable{
 			}
 			double avgError = errorSum/inputs.length;
 			if(runs == 0) startError = avgError;
+			if(dv != null)dv.addError((float)avgError);
 			System.out.println("Epoch: " + runs + ", error: " + avgError);
 			runs++;
 			if(runs>=maxIterations || avgError <= Math.pow(0.03, 2)/2) break;
 		}
 		System.out.println("\nFinished!");
 		System.out.println("Start error: " + startError);
-		printWeights();
+		//printWeights();
 	}
 	
 	public void writeToDisk(String path){
@@ -106,14 +144,12 @@ public class NeuralNetwork implements java.io.Serializable{
 				out.writeInt(layer.getBiasNeurons().length);
 			}
 			for(NeuronLayer nl:layers){
-				out.writeInt(nl.getNeurons().length);
 				for(Neuron n:nl.getNeurons()){
 					out.writeInt(n.getDendrites().length);
 					for(Dendrite d:n.getDendrites()){
 						out.writeDouble(d.getWeight());
 					}
 				}
-				out.writeInt(nl.getBiasNeurons().length);
 				for(Neuron n:nl.getBiasNeurons()){
 					out.writeInt(n.getDendrites().length);
 					for(Dendrite d:n.getDendrites()){
@@ -179,10 +215,6 @@ public class NeuralNetwork implements java.io.Serializable{
 		}
 	}
 	
-	double sigmoid(double x){
-		return 1/(1+Math.pow(Math.E, -x));
-	}
-	
 	private void getErrors(double[] results, double[] expectedResults){
 		for(int i = layers.length - 1; i > 0; i--){
 			NeuronLayer layer = layers[i];
@@ -223,6 +255,7 @@ public class NeuralNetwork implements java.io.Serializable{
 					double delta = learningRate * neuron.getError() * dendrite.getStart().getOutput();
 					if(dendriteDeltaMap.get(dendrite) != null){
 						delta += momentum * dendriteDeltaMap.get(dendrite);
+						//System.out.println("momentum!");
 					}
 					dendriteDeltaMap.put(dendrite, delta);
 					dendrite.adjustWeight(-delta);
@@ -231,23 +264,23 @@ public class NeuralNetwork implements java.io.Serializable{
 		}
 	}
 	
-	private void printWeights(){
+	public void printWeights(java.io.PrintStream out){
 		for(int i = 0; i < layers.length-1; i++){
 			NeuronLayer layer = layers[i];
-			System.out.print("Layer " + i + ": ");
+			out.print("Layer " + i + ": ");
 			for(Neuron neuron:layer.getNeurons()){
 				for(Dendrite dendrite:neuron.getDendrites()){
-					System.out.print(dendrite.weight + ",");
+					out.print(dendrite.weight + ",");
 				}
-				System.out.print("    ");
+				out.print("    ");
 			}
-			System.out.print("Bias: ");
+			out.print("Bias: ");
 			for(Neuron neuron:layer.getBiasNeurons()){
 				for(Dendrite dendrite:neuron.getDendrites()){
-					System.out.print(dendrite.weight + ", ");
+					out.print(dendrite.weight + ", ");
 				}
 			}
-			System.out.println();
+			out.println();
 		}
 	}
 }

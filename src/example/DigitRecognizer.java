@@ -41,13 +41,15 @@ public class DigitRecognizer {
 		BufferedImage[] images = ImageUtils.getImages(imagePath);
 		ImageUtils.showImage(images[2]);
 		double[][] outputs = ImageUtils.getLabels(labelPath);
-		System.out.println(Arrays.toString(outputs));
+		for(double[] arr:outputs){
+			System.out.println(Arrays.toString(arr));
+		}
 		double[][] inputs = new double[images.length][];
 		for(int i = 0; i < inputs.length; i++){
 			inputs[i] = getDataFromBufferedImage(images[i]);
 		}
-		network = new NeuralNetwork(new int[]{WIDTH*HEIGHT,WIDTH*HEIGHT/2,8}, new int[]{1,1,0});
-		network.train(inputs, outputs, 0.1, 0.9, 1);
+		network = new NeuralNetwork(new int[]{WIDTH*HEIGHT,WIDTH*HEIGHT/2,8}, new int[]{1,1,0},true,"Digit",1000,0.03f);
+		network.train(inputs, outputs, 0.1, 0.9, 2000);
 		//saveNeuralNetwork(network,"DigitRecognizer.net");
 		network.writeToDisk("DigitRecognizer.net");
 		System.out.println("Saved!");
