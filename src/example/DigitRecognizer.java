@@ -1,5 +1,8 @@
 package example;
 
+import java.awt.Color;
+import java.awt.Rectangle;
+import java.awt.geom.Area;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -46,18 +49,21 @@ public class DigitRecognizer {
 		}
 		double[][] inputs = new double[images.length][];
 		for(int i = 0; i < inputs.length; i++){
-			inputs[i] = getDataFromBufferedImage(images[i]);
+			//inputs[i] = getDataFromBufferedImage(images[i]);
+			inputs[i] = getCondensedData(images[i]);
 		}
-		network = new NeuralNetwork(new int[]{WIDTH*HEIGHT,WIDTH*HEIGHT/2,8}, new int[]{1,1,0},true,"Digit",1000,0.03f);
-		network.train(inputs, outputs, 0.1, 0.9, 2000);
+		network = new NeuralNetwork(new int[]{5,3,8}, new int[]{1,1,0},true,"Digit",1000,Math.pow(0.03, 2)/2);
+		network.train(inputs, outputs, 0.1, 0.9, 200000);
 		//saveNeuralNetwork(network,"DigitRecognizer.net");
 		network.writeToDisk("DigitRecognizer.net");
 		System.out.println("Saved!");
+		Guesser.guessRandom(network);
 	}
 	
 	public int guess(String path) throws IOException{
 		BufferedImage image = ImageUtils.toBufferedImage(ImageIO.read(new File(path)).getScaledInstance(WIDTH, HEIGHT, BufferedImage.SCALE_FAST));
-		double[] input = getDataFromBufferedImage(image);
+		//double[] input = getDataFromBufferedImage(image);
+		double[] input = getCondensedData(image);
 		double[] result = network.guess(input);
 		String binary = "";
 		for(int i = 0; i < result.length; i++){
@@ -77,10 +83,31 @@ public class DigitRecognizer {
 		return toReturn;
 	}
 	
-	void showImage(BufferedImage img){
+	static double[] getCondensedData(BufferedImage img){
+		Area a = new Area();
+		int numPixels = 0;
+		for(int y = 0; y < img.getHeight(); y++){
+			for(int x = 0; x < img.getWidth(); x++){
+				if(!new Color(img.getRGB(x, y)).equals(Color.BLACK)){
+					numPixels++;
+					a.add(new Area(new Rectangle(x,y,1,1)));
+				}
+			}
+		}
+		Rectangle rect = a.getBounds();
+		double[] toReturn = new double[5];
+		toReturn[0] = rect.getCenterX();
+		toReturn[1] = rect.getCenterY();
+		toReturn[2] = rect.getWidth();
+		toReturn[3] = rect.getHeight();
+		toReturn[4] = numPixels;
+		return toReturn;
+		
+	}
+	
+	static void showImage(BufferedImage img){
 		JFrame frame = new JFrame();
 		JLabel label = new JLabel();
-		ImageUtils.monoColor(img);
 		label.setIcon(new ImageIcon(img.getScaledInstance(WIDTH, HEIGHT, BufferedImage.SCALE_FAST).getScaledInstance(WIDTH*10, HEIGHT*10, BufferedImage.SCALE_FAST)));
 		frame.getContentPane().add(label);
 		frame.pack();

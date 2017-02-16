@@ -32,7 +32,7 @@ public class DataVisualizer {
 		}).start();
 	}
 	
-	public DataVisualizer(String title, float scale, float threshold){
+	public DataVisualizer(String title, float scale, double threshold){
 		new Thread(() -> {
 			try{
 				v = new Visualizer(title,scale,threshold);
@@ -55,15 +55,15 @@ public class DataVisualizer {
 	public class Visualizer extends BasicGame {
 		private ArrayList<Float> errors;
 		private float scale;
-		private float threshold;
+		private double threshold;
 		public Visualizer(String title) {
 			super(title);
 			errors = new ArrayList<Float>();
 			scale = 4500;
-			threshold = 0.03f;
+			threshold = 0.03;
 		}
 		
-		public Visualizer(String title, float scale, float threshold){
+		public Visualizer(String title, float scale, double threshold){
 			super(title);
 			errors = new ArrayList<Float>();
 			this.scale = scale;
@@ -83,7 +83,7 @@ public class DataVisualizer {
 				g.setColor(Color.white);
 				g.drawLine(X_PADDING + x, gc.getHeight()-Y_PADDING, X_PADDING + x, gc.getHeight() - (Y_PADDING + Collections.synchronizedList(errors).get(i)));
 				g.setColor(Color.red);
-				g.drawLine(0, gc.getHeight()-(threshold*scale)-Y_PADDING, gc.getWidth(), gc.getHeight()-(threshold*scale) - Y_PADDING);
+				g.drawLine(0, gc.getHeight()-(float)(threshold*scale)-Y_PADDING, gc.getWidth(), gc.getHeight()-(float)(threshold*scale) - Y_PADDING);
 				x++;
 			}
 		}

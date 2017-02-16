@@ -79,7 +79,7 @@ public class NeuralNetwork implements java.io.Serializable{
 		init(layers,bias);
 	}
 	
-	public NeuralNetwork(int[] layers, int[] bias, boolean visualize, String title, float scale, float threshold){
+	public NeuralNetwork(int[] layers, int[] bias, boolean visualize, String title, float scale, double threshold){
 		init(layers, bias);
 		if(visualize){
 			dv = new DataVisualizer(title,scale,threshold);
