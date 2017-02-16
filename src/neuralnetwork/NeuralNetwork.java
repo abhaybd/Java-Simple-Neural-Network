@@ -50,7 +50,7 @@ public class NeuralNetwork implements java.io.Serializable{
 	}
 	
 	public static void main(String[] args){
-		NeuralNetwork net = new NeuralNetwork(new int[]{2,2,1}, new int[]{1,1,0}, true, "XOR", 4500, 0.03f);
+		NeuralNetwork net = new NeuralNetwork(new int[]{2,2,1}, new int[]{1,1,0}, true, "XOR", 4500, Math.pow(0.03, 2)/2);
 		double[][] inputs = new double[][]{
 			{0,1},
 			{1,0},
