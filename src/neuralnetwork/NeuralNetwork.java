@@ -83,6 +83,11 @@ public class NeuralNetwork implements java.io.Serializable{
 		init(layers, bias);
 		if(visualize){
 			dv = new DataVisualizer(title,scale,threshold);
+			try {
+				Thread.sleep(3000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	

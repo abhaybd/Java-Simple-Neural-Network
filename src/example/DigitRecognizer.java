@@ -52,7 +52,7 @@ public class DigitRecognizer {
 			//inputs[i] = getDataFromBufferedImage(images[i]);
 			inputs[i] = getCondensedData(images[i]);
 		}
-		network = new NeuralNetwork(new int[]{5,3,8}, new int[]{1,1,0},true,"Digit",1000,Math.pow(0.03, 2)/2);
+		network = new NeuralNetwork(new int[]{5,3,8}, new int[]{1,1,0},true,"Digit",500,Math.pow(0.03, 2)/2);
 		network.train(inputs, outputs, 0.1, 0.9, 2000000);
 		//saveNeuralNetwork(network,"DigitRecognizer.net");
 		network.writeToDisk("DigitRecognizer.net");
