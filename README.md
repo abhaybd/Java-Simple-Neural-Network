@@ -9,9 +9,9 @@ A very rudimentary playground for my neural net experiments
 * `guess()` method extrapolates data based on current weights
 * train based on data supplied in text files
 * train based on data supplied as arrays
+* Bias neurons
 
 ## What it can't do (but is on the to-do list)
-* Bias neurons
 * Dropout
 
 ## What it can't do (and probably will never do)
