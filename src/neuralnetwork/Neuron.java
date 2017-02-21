@@ -66,12 +66,7 @@ public class Neuron implements java.io.Serializable{
 		dendrites = new Dendrite[nextLayer.getNeurons().length];
 		Random rand = new Random();
 		for(int i = 0; i < dendrites.length; i++){
-			if(isBias) {
-				dendrites[i] = new Dendrite(this,nextLayer.getNeurons()[i],1);
-			}
-			else{
-				dendrites[i] = new Dendrite(this,nextLayer.getNeurons()[i],rand.nextDouble());				
-			}
+			dendrites[i] = new Dendrite(this,nextLayer.getNeurons()[i],isBias?1:rand.nextDouble());
 		}		
 	}
 	
