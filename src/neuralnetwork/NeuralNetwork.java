@@ -120,12 +120,10 @@ public class NeuralNetwork implements java.io.Serializable{
 		while(true){
 			HashMap<Dendrite,Double> dendriteDeltaMap = new HashMap<>();
 			double errorSum = 0;
-			//if(runs>=maxIterations)break;
 			for(int i = 0; i < inputs.length; i++){
 				double[] results = evaluate(inputs[i]);
 				double error = calculateAggregateError(results,outputs[i]); //calculate mean squared error
 				errorSum += error;
-				//System.out.println("Error: " + error);
 				getErrors(results, outputs[i]);
 				updateWeights(dendriteDeltaMap, learningRate, momentum);
 			}
@@ -137,6 +135,33 @@ public class NeuralNetwork implements java.io.Serializable{
 			if(runs>=maxIterations || avgError <= Math.pow(0.03, 2)/2) break;
 		}
 		System.out.println("\nFinished!");
+		System.out.println("Start error: " + startError);
+		//printWeights();
+	}
+	
+	public void train(double[][] inputs, double[][] outputs, double learningRate, double momentum, long maxTime){
+		int runs = 0;
+		double startError = 0;
+		long startTime = System.currentTimeMillis();
+		boolean done = false;
+		while(!done){
+			HashMap<Dendrite,Double> dendriteDeltaMap = new HashMap<>();
+			double errorSum = 0;
+			for(int i = 0; i < inputs.length; i++){
+				double[] results = evaluate(inputs[i]);
+				double error = calculateAggregateError(results,outputs[i]); //calculate mean squared error
+				errorSum += error;
+				getErrors(results, outputs[i]);
+				updateWeights(dendriteDeltaMap, learningRate, momentum);
+			}
+			double avgError = errorSum/inputs.length;
+			if(runs == 0) startError = avgError;
+			if(dv != null)dv.addError((float)avgError);
+			System.out.println("Epoch: " + runs + ", error: " + avgError);
+			runs++;
+			done = Math.abs(System.currentTimeMillis() - startTime) >= maxTime || avgError <= Math.pow(0.03, 2)/2;
+		}
+		System.out.println("\nFinished after running for " + maxTime/1000 + " seconds!");
 		System.out.println("Start error: " + startError);
 		//printWeights();
 	}

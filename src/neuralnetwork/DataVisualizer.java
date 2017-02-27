@@ -23,6 +23,7 @@ public class DataVisualizer {
 				v = new Visualizer("Neural Network");
 				AppGameContainer appgc = new AppGameContainer(v);
 				appgc.setDisplayMode(1024, 756, false);
+				appgc.setShowFPS(false);
 				appgc.start();
 				System.err.println("started!");
 			}

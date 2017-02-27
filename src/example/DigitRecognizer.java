@@ -50,10 +50,10 @@ public class DigitRecognizer {
 		double[][] inputs = new double[images.length][];
 		for(int i = 0; i < inputs.length; i++){
 			//inputs[i] = getDataFromBufferedImage(images[i]);
-			inputs[i] = getCondensedData(images[i]);
+			inputs[i] = ImageUtils.getCondensedData(images[i]);
 		}
-		network = new NeuralNetwork(new int[]{5,3,8}, new int[]{1,1,0},true,"Digit",500,Math.pow(0.03, 2)/2);
-		network.train(inputs, outputs, 0.1, 0.9, 2000000);
+		network = new NeuralNetwork(new int[]{inputs[0].length,inputs[0].length/2,8}, new int[]{1,1,0},true,"Digit",500,Math.pow(0.03, 2)/2);
+		network.train(inputs, outputs, 0.1, 0.9, 20000);
 		//saveNeuralNetwork(network,"DigitRecognizer.net");
 		network.writeToDisk("DigitRecognizer.net");
 		System.out.println("Saved!");
@@ -63,46 +63,13 @@ public class DigitRecognizer {
 	public int guess(String path) throws IOException{
 		BufferedImage image = ImageUtils.toBufferedImage(ImageIO.read(new File(path)).getScaledInstance(WIDTH, HEIGHT, BufferedImage.SCALE_FAST));
 		//double[] input = getDataFromBufferedImage(image);
-		double[] input = getCondensedData(image);
+		double[] input = ImageUtils.getCondensedData(image);
 		double[] result = network.guess(input);
 		String binary = "";
 		for(int i = 0; i < result.length; i++){
 			binary += Math.round((float)result[i]);
 		}
 		return Integer.parseInt(binary, 2);
-	}
-	
-	static double[] getDataFromBufferedImage(BufferedImage img){
-		double[] toReturn = new double[img.getWidth()*img.getHeight()];
-		int index = 0;
-		for(int i = 0; i < img.getWidth(); i++){
-			for(int j = 0; j < img.getHeight(); j++){
-				toReturn[index] = img.getRGB(j,i);
-			}
-		}
-		return toReturn;
-	}
-	
-	static double[] getCondensedData(BufferedImage img){
-		Area a = new Area();
-		int numPixels = 0;
-		for(int y = 0; y < img.getHeight(); y++){
-			for(int x = 0; x < img.getWidth(); x++){
-				if(!new Color(img.getRGB(x, y)).equals(Color.BLACK)){
-					numPixels++;
-					a.add(new Area(new Rectangle(x,y,1,1)));
-				}
-			}
-		}
-		Rectangle rect = a.getBounds();
-		double[] toReturn = new double[5];
-		toReturn[0] = rect.getCenterX();
-		toReturn[1] = rect.getCenterY();
-		toReturn[2] = rect.getWidth();
-		toReturn[3] = rect.getHeight();
-		toReturn[4] = numPixels;
-		return toReturn;
-		
 	}
 	
 	static void showImage(BufferedImage img){

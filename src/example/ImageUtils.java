@@ -3,6 +3,8 @@ package example;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Rectangle;
+import java.awt.geom.Area;
 import java.awt.image.BufferedImage;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
@@ -104,5 +106,38 @@ public class ImageUtils {
 
 	    // Return the buffered image
 	    return bimage;
+	}
+	
+	public static double[] getDataFromBufferedImage(BufferedImage img){
+		double[] toReturn = new double[img.getWidth()*img.getHeight()];
+		int index = 0;
+		for(int i = 0; i < img.getWidth(); i++){
+			for(int j = 0; j < img.getHeight(); j++){
+				toReturn[index] = img.getRGB(j,i);
+				index++;
+			}
+		}
+		return toReturn;
+	}
+	
+	public static double[] getCondensedData(BufferedImage img){
+		Area a = new Area();
+		int numPixels = 0;
+		for(int y = 0; y < img.getHeight(); y++){
+			for(int x = 0; x < img.getWidth(); x++){
+				if(!new Color(img.getRGB(x, y)).equals(Color.BLACK)){
+					numPixels++;
+					a.add(new Area(new Rectangle(x,y,1,1)));
+				}
+			}
+		}
+		Rectangle rect = a.getBounds();
+		double[] toReturn = new double[5];
+		toReturn[0] = rect.getCenterX();
+		toReturn[1] = rect.getCenterY();
+		toReturn[2] = rect.getWidth();
+		toReturn[3] = rect.getHeight();
+		toReturn[4] = numPixels;
+		return toReturn;
 	}
 }
