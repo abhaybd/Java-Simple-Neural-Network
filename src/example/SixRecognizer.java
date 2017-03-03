@@ -25,12 +25,33 @@ public class SixRecognizer {
 			inputs[i] = ImageUtils.getCondensedData(images[i]);
 		}
 		NeuralNetwork network = new NeuralNetwork(new int[]{inputs[0].length,inputs[0].length/2,1}, new int[]{1,1,0},true,"Digit",5000,Math.pow(0.03, 2)/2);
-		network.train(inputs, outputs, 0.1, 0.9, 20000);
+		network.train(inputs, outputs, 0.1, 0.9, 2000);
 		//saveNeuralNetwork(network,"DigitRecognizer.net");
 		network.writeToDisk("SixRecognizer.net");
 		System.out.println("Saved!");
-		Guesser.guessRandom(network);
-		Guesser.guessSpecific(network, 6);
+		guess(network);
+	}
+	
+	private void guess(NeuralNetwork network){
+		try{
+			BufferedImage[] images = ImageUtils.getImages("data/train-images.idx3-ubyte");
+			double[][] output = getSixLabels("data/train-labels.idx1-ubyte");
+			int index = 0;
+			int val = 0;
+			for(int i = 0; i < output.length; i++){
+				val = Math.round((float)output[i][0]);
+				if(val == 6){
+					index = i;
+					break;
+				}
+			}
+			ImageUtils.showImage(images[index]);
+			System.out.println(Arrays.toString(network.guess(ImageUtils.getCondensedData(images[index]))));
+			System.out.println(Arrays.toString(network.guess(ImageUtils.getCondensedData(images[0]))));
+			System.out.println(val);
+		} catch(IOException e){
+			e.printStackTrace();
+		}
 	}
 	
 	private double[][] getSixLabels(String path) throws IOException{
