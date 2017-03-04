@@ -14,7 +14,7 @@ public class SixRecognizer {
 	}
 	public SixRecognizer(String labelPath, String imagePath) throws IOException{
 		BufferedImage[] images = ImageUtils.getImages(imagePath);
-		ImageUtils.showImage(images[2]);
+		//ImageUtils.showImage(images[2]);
 		double[][] outputs = getSixLabels(labelPath);
 		for(double[] arr:outputs){
 			System.out.println(Arrays.toString(arr));
@@ -40,7 +40,7 @@ public class SixRecognizer {
 			int val = 0;
 			for(int i = 0; i < output.length; i++){
 				val = Math.round((float)output[i][0]);
-				if(val == 6){
+				if(val == 1){
 					index = i;
 					break;
 				}

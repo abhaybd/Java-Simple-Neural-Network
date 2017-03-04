@@ -113,7 +113,7 @@ public class ImageUtils {
 		int index = 0;
 		for(int i = 0; i < img.getWidth(); i++){
 			for(int j = 0; j < img.getHeight(); j++){
-				toReturn[index] = img.getRGB(j,i);
+				toReturn[index] = img.getRGB(j,i) != 0?1:-1;;
 				index++;
 			}
 		}
@@ -133,11 +133,11 @@ public class ImageUtils {
 		}
 		Rectangle rect = a.getBounds();
 		double[] toReturn = new double[5];
-		toReturn[0] = rect.getCenterX();
-		toReturn[1] = rect.getCenterY();
-		toReturn[2] = rect.getWidth();
-		toReturn[3] = rect.getHeight();
-		toReturn[4] = numPixels;
+		toReturn[0] = rect.getCenterX()/(double)img.getWidth();;
+		toReturn[1] = rect.getCenterY()/(double)img.getHeight();
+		toReturn[2] = rect.getWidth()/(double)img.getWidth();
+		toReturn[3] = rect.getHeight()/(double)img.getHeight();
+		toReturn[4] = numPixels/(double)(img.getHeight()*img.getWidth());
 		return toReturn;
 	}
 }
