@@ -24,6 +24,7 @@ public class DataVisualizer {
 				AppGameContainer appgc = new AppGameContainer(v);
 				appgc.setDisplayMode(1024, 756, false);
 				appgc.setShowFPS(false);
+				appgc.setTargetFrameRate(100);
 				appgc.start();
 				System.err.println("started!");
 			}

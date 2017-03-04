@@ -5,6 +5,7 @@ import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Random;
 
 import neuralnetwork.NeuralNetwork;
 
@@ -25,7 +26,7 @@ public class SixRecognizer {
 			inputs[i] = ImageUtils.getCondensedData(images[i]);
 		}
 		NeuralNetwork network = new NeuralNetwork(new int[]{inputs[0].length,inputs[0].length/2,1}, new int[]{1,1,0},true,"Digit",5000,Math.pow(0.03, 2)/2);
-		network.train(inputs, outputs, 0.1, 0.9, 2000);
+		network.train(inputs, outputs, 0.1, 0.9, 20000);
 		//saveNeuralNetwork(network,"DigitRecognizer.net");
 		network.writeToDisk("SixRecognizer.net");
 		System.out.println("Saved!");
@@ -34,15 +35,18 @@ public class SixRecognizer {
 	
 	private void guess(NeuralNetwork network){
 		try{
-			BufferedImage[] images = ImageUtils.getImages("data/train-images.idx3-ubyte");
-			double[][] output = getSixLabels("data/train-labels.idx1-ubyte");
+			BufferedImage[] images = ImageUtils.getImages("data/t10k-images.idx3-ubyte");
+			double[][] output = getSixLabels("data/t10k-labels.idx1-ubyte");
 			int index = 0;
 			int val = 0;
+			Random r = new Random();
 			for(int i = 0; i < output.length; i++){
 				val = Math.round((float)output[i][0]);
 				if(val == 1){
 					index = i;
-					break;
+					if(r.nextInt(10) == 0){
+						break;						
+					}
 				}
 			}
 			ImageUtils.showImage(images[index]);

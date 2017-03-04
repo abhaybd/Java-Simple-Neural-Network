@@ -114,7 +114,15 @@ public class NeuralNetwork implements java.io.Serializable{
 		return evaluate(input);
 	}
 	
+	public double[] guess(double[] input, boolean softMax){
+		return evaluate(input, softMax);
+	}
+	
 	public void train(double[][] inputs, double[][] outputs, double learningRate, double momentum, int maxIterations){
+		train(inputs, outputs, learningRate, momentum, maxIterations, false);
+	}
+	
+	public void train(double[][] inputs, double[][] outputs, double learningRate, double momentum, int maxIterations, boolean classification){
 		int runs = 0;
 		double startError = 0;
 		while(true){
@@ -139,7 +147,11 @@ public class NeuralNetwork implements java.io.Serializable{
 		//printWeights();
 	}
 	
-	public void train(double[][] inputs, double[][] outputs, double learningRate, double momentum, long maxTime){
+	public void trainForMilliseconds(double[][] inputs, double[][] outputs, double learningRate, double momentum, long maxTime){
+		trainForMilliSeconds(inputs, outputs, learningRate, momentum, maxTime, false);
+	}
+	
+	public void trainForMilliSeconds(double[][] inputs, double[][] outputs, double learningRate, double momentum, long maxTime, boolean classification){
 		int runs = 0;
 		double startError = 0;
 		long startTime = System.currentTimeMillis();
@@ -161,7 +173,7 @@ public class NeuralNetwork implements java.io.Serializable{
 			runs++;
 			done = Math.abs(System.currentTimeMillis() - startTime) >= maxTime || avgError <= Math.pow(0.03, 2)/2;
 		}
-		System.out.println("\nFinished after running for " + maxTime/1000 + " seconds!");
+		System.out.println("\nFinished after running for " + Math.abs(System.currentTimeMillis() - startTime)/1000 + " seconds!");
 		System.out.println("Start error: " + startError);
 		//printWeights();
 	}
@@ -199,8 +211,12 @@ public class NeuralNetwork implements java.io.Serializable{
 		}
 		return error;
 	}
-
+	
 	private double[] evaluate(double[] input){
+		return evaluate(input,false);
+	}
+
+	private double[] evaluate(double[] input, boolean softMax){
 		//reset the neuron values
 		for(NeuronLayer layer:layers){
 			for(Neuron neuron:layer.getNeurons()){
@@ -230,7 +246,9 @@ public class NeuralNetwork implements java.io.Serializable{
 				}
 			}
 		}
-		
+		if(softMax){
+			return layers[layers.length-1].softMax();
+		}
 		//get results
 		double[] results = new double[layers[layers.length-1].getNeurons().length];
 		for(int i = 0; i < results.length; i++){

@@ -28,7 +28,7 @@ public class Guesser {
 			BufferedImage[] images = ImageUtils.getImages("data/t10k-images.idx3-ubyte");
 			double[][] output = ImageUtils.getLabels("data/t10k-labels.idx1-ubyte");
 			int index = new Random().nextInt(images.length);
-			System.out.println(Arrays.toString(network.guess(ImageUtils.getCondensedData(images[index]))));
+			System.out.println(Arrays.toString(network.guess(ImageUtils.getCondensedData(images[index]),true)));
 			System.out.println(Arrays.toString(output[index]));
 			ImageUtils.showImage(images[index]);
 		} catch (IOException e) {

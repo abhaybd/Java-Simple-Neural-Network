@@ -28,12 +28,10 @@ public class ImageUtils {
 			in.readInt();
 			int numLabels = in.readInt();
 			numLabels = 100;
-			double[][] labels = new double[numLabels][8];
+			double[][] labels = new double[numLabels][10];
 			for(int i = 0; i < labels.length; i++){
-				String binary = Integer.toBinaryString(in.read());
-				for(int j = 0; j < binary.length(); j++){
-					labels[i][j+(8-binary.length())] = Double.parseDouble(String.valueOf(binary.charAt(j)));
-				}
+				int val = in.read();
+				labels[i][val%10] = 1;
 			}
 			return labels;
 		}

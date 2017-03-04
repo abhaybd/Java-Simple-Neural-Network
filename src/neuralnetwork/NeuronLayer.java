@@ -27,6 +27,18 @@ public class NeuronLayer implements java.io.Serializable{
 		}
 	}
 	
+	public double[] softMax(){
+		double sum = 0;
+		for(Neuron neuron:neurons){
+			sum += Math.pow(Math.E, neuron.getWeightedSum());
+		}
+		double[] toReturn = new double[neurons.length];
+		for(int i = 0; i < neurons.length; i++){
+			toReturn[i] = Math.pow(Math.E, neurons[i].getWeightedSum())/sum;
+		}
+		return toReturn;
+	}
+	
 	public boolean isInput(){
 		return isInput;
 	}
