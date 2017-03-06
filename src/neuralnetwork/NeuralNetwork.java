@@ -50,7 +50,7 @@ public class NeuralNetwork implements java.io.Serializable{
 	}
 	
 	public static void main(String[] args){
-		NeuralNetwork net = new NeuralNetwork(new int[]{2,2,1}, new int[]{1,1,0}, true, "XOR", 4500, Math.pow(0.03, 2)/2);
+		NeuralNetwork net = new NeuralNetwork(new int[]{2,2,1}, new int[]{1,1,0},"XOR", 4500, Math.pow(0.03, 2)/2);
 		double[][] inputs = new double[][]{
 			{0,1},
 			{1,0},
@@ -79,15 +79,13 @@ public class NeuralNetwork implements java.io.Serializable{
 		init(layers,bias);
 	}
 	
-	public NeuralNetwork(int[] layers, int[] bias, boolean visualize, String title, float scale, double threshold){
+	public NeuralNetwork(int[] layers, int[] bias, String title, float scale, double threshold){
 		init(layers, bias);
-		if(visualize){
-			dv = new DataVisualizer(title,scale,threshold);
-			try {
-				Thread.sleep(3000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+		dv = new DataVisualizer(title,scale,threshold);
+		try {
+			Thread.sleep(3000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 	
@@ -129,7 +127,7 @@ public class NeuralNetwork implements java.io.Serializable{
 			HashMap<Dendrite,Double> dendriteDeltaMap = new HashMap<>();
 			double errorSum = 0;
 			for(int i = 0; i < inputs.length; i++){
-				double[] results = evaluate(inputs[i]);
+				double[] results = evaluate(inputs[i], classification);
 				double error = calculateAggregateError(results,outputs[i]); //calculate mean squared error
 				errorSum += error;
 				getErrors(results, outputs[i]);
@@ -160,7 +158,7 @@ public class NeuralNetwork implements java.io.Serializable{
 			HashMap<Dendrite,Double> dendriteDeltaMap = new HashMap<>();
 			double errorSum = 0;
 			for(int i = 0; i < inputs.length; i++){
-				double[] results = evaluate(inputs[i]);
+				double[] results = evaluate(inputs[i], classification);
 				double error = calculateAggregateError(results,outputs[i]); //calculate mean squared error
 				errorSum += error;
 				getErrors(results, outputs[i]);

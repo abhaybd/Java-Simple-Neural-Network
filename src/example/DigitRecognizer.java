@@ -1,8 +1,5 @@
 package example;
 
-import java.awt.Color;
-import java.awt.Rectangle;
-import java.awt.geom.Area;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -49,11 +46,11 @@ public class DigitRecognizer {
 		}
 		double[][] inputs = new double[images.length][];
 		for(int i = 0; i < inputs.length; i++){
-			//inputs[i] = getDataFromBufferedImage(images[i]);
+			//inputs[i] = ImageUtils.getDataFromBufferedImage(images[i]);
 			inputs[i] = ImageUtils.getCondensedData(images[i]);
 		}
-		network = new NeuralNetwork(new int[]{inputs[0].length,inputs[0].length/2,10}, new int[]{1,1,0},true,"Digit",500,Math.pow(0.03, 2)/2);
-		network.train(inputs, outputs, 0.1, 0.9, 200, true);
+		network = new NeuralNetwork(new int[]{inputs[0].length,inputs[0].length/2,10}, new int[]{1,1,0}, "Digit",500,Math.pow(0.03, 2)/2);
+		network.train(inputs, outputs, 0.1, 0.9, 1000, true);
 		//saveNeuralNetwork(network,"DigitRecognizer.net");
 		network.writeToDisk("DigitRecognizer.net");
 		System.out.println("Saved!");
@@ -62,7 +59,7 @@ public class DigitRecognizer {
 	
 	public int guess(String path) throws IOException{
 		BufferedImage image = ImageUtils.toBufferedImage(ImageIO.read(new File(path)).getScaledInstance(WIDTH, HEIGHT, BufferedImage.SCALE_FAST));
-		//double[] input = getDataFromBufferedImage(image);
+		//double[] input = ImageUtils.getDataFromBufferedImage(image);
 		double[] input = ImageUtils.getCondensedData(image);
 		double[] result = network.guess(input);
 		String binary = "";
