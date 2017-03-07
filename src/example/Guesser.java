@@ -8,32 +8,65 @@ import java.util.Random;
 import neuralnetwork.NeuralNetwork;
 
 public class Guesser {
-	public static void main(String[] args){
-		try {
-			int index = 1;
-			NeuralNetwork network = NeuralNetwork.readFromDisk("DigitRecognizer.net");
-			network.printWeights(System.out);
-			BufferedImage[] images = ImageUtils.getImages("data/t10k-images.idx3-ubyte");
-			double[][] output = ImageUtils.getLabels("data/t10k-labels.idx1-ubyte");
-			System.out.println(Arrays.toString(network.guess(ImageUtils.getDataFromBufferedImage(images[index]))));
-			System.out.println(Arrays.toString(output[index]));
-			DigitRecognizer.showImage(images[index]);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
 	
 	public static void guessRandom(NeuralNetwork network){
 		try{
 			BufferedImage[] images = ImageUtils.getImages("data/train-images.idx3-ubyte");
 			double[][] output = ImageUtils.getLabels("data/train-labels.idx1-ubyte");
 			int index = new Random().nextInt(images.length);
-			System.out.println(Arrays.toString(network.guess(ImageUtils.getCondensedData(images[index]),true)));
+			System.out.println(Arrays.toString(network.guess(ImageUtils.getCondensedData(images[index]),network.isClassification())));
 			System.out.println(Arrays.toString(output[index]));
 			ImageUtils.showImage(images[index]);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private static int indexOf(double[] arr, double search){
+		for(int i = 0; i < arr.length; i++){
+			if(arr[i] == search) return i;
+		}
+		return -1;
+	}
+	
+	private static <T> boolean containsNull(T[] arr){
+		for(int i = 0; i < arr.length; i++){
+			if(arr[i] == null){
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static void guessAll(NeuralNetwork network){
+		try{
+			BufferedImage[] images = ImageUtils.getImages("data/train-images.idx3-ubyte");
+			double[][] output = ImageUtils.getLabels("data/train-labels.idx1-ubyte");
+			DataPoint[] data = new DataPoint[10];
+			for(int i = 0; i < images.length; i++){
+				int index = indexOf(output[i],1);
+				if(data[index] == null){
+					DataPoint dp = new DataPoint();
+					dp.input = images[i];
+					dp.output = output[i];
+					data[index] = dp;
+				}
+				if(!containsNull(data)) break;
+			}
+			for(int i = 0; i < data.length; i++){
+				DataPoint dp = data[i];
+				System.out.println("========================\nTesting: " + i);
+				System.out.println(Arrays.toString(network.guess(ImageUtils.getCondensedData(dp.input),network.isClassification())));
+				System.out.println(Arrays.toString(dp.output));				
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	static class DataPoint{
+		public BufferedImage input;
+		public double[] output;
 	}
 	
 	public static void guessSpecific(NeuralNetwork network, int toGuess){

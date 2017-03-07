@@ -40,7 +40,7 @@ public class SixRecognizer {
 			int index = 0;
 			int val = 0;
 			Random r = new Random();
-			for(int i = 0; i < output.length; i++){
+			for(int i = 5; i < output.length; i++){
 				val = Math.round((float)output[i][0]);
 				if(val == 1){
 					index = i;

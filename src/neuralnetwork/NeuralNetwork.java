@@ -75,6 +75,7 @@ public class NeuralNetwork implements java.io.Serializable{
 	
 	protected NeuronLayer[] layers;
 	private DataVisualizer dv = null;
+	private boolean trainedWithSoftMax = false;
 	public NeuralNetwork(int[] layers, int[] bias){
 		init(layers,bias);
 	}
@@ -99,9 +100,13 @@ public class NeuralNetwork implements java.io.Serializable{
 		}
 		randomWeights();
 	}
-	
+		
 	public NeuralNetwork(NeuronLayer[] layers){
 		this.layers = layers;
+	}
+	
+	public boolean isClassification(){
+		return trainedWithSoftMax;
 	}
 	
 	public NeuronLayer[] getLayers(){
@@ -121,6 +126,7 @@ public class NeuralNetwork implements java.io.Serializable{
 	}
 	
 	public void train(double[][] inputs, double[][] outputs, double learningRate, double momentum, int maxIterations, boolean classification){
+		trainedWithSoftMax = classification;
 		int runs = 0;
 		double startError = 0;
 		while(true){
