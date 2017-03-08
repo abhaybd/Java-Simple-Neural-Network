@@ -49,7 +49,7 @@ public class DigitRecognizer {
 			//inputs[i] = ImageUtils.getDataFromBufferedImage(images[i]);
 			inputs[i] = ImageUtils.getCondensedData(images[i]);
 		}
-		network = new NeuralNetwork(new int[]{inputs[0].length,inputs[0].length/2,10}, new int[]{1,1,0}, "Digit",500,Math.pow(0.03, 2)/2);
+		network = new NeuralNetwork(new int[]{inputs[0].length,(inputs[0].length+10)*2/3,10}, new int[]{1,1,0}, "Digit",500,Math.pow(0.03, 2)/2);
 		network.train(inputs, outputs, 0.1, 0.9, 10000, false);
 		//saveNeuralNetwork(network,"DigitRecognizer.net");
 		network.writeToDisk("DigitRecognizer.net");
