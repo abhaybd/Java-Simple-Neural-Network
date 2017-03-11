@@ -55,7 +55,11 @@ public class ImageUtils {
 				for(int x = 0; x < rows; x++){
 					for(int y = 0; y < cols; y++){
 						int val = in.read();
-						image.setRGB(y, x, new Color(val,val,val).getRGB());
+						int rgb = Color.BLACK.getRGB();
+						if(val > 5){
+							rgb = Color.WHITE.getRGB();
+						}
+						image.setRGB(y, x, rgb);
 					}
 				}
 				images[i] = image;
@@ -112,7 +116,7 @@ public class ImageUtils {
 		int index = 0;
 		for(int i = 0; i < img.getWidth(); i++){
 			for(int j = 0; j < img.getHeight(); j++){
-				toReturn[index] = img.getRGB(j,i) != black?1:-1;;
+				toReturn[index] = img.getRGB(j,i) != black?1:-1;
 				index++;
 			}
 		}
