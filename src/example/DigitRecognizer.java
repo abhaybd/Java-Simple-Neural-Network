@@ -41,16 +41,21 @@ public class DigitRecognizer {
 		BufferedImage[] images = ImageUtils.getImages(imagePath);
 		ImageUtils.showImage(images[2]);
 		double[][] outputs = ImageUtils.getLabels(labelPath);
-		for(double[] arr:outputs){
-			System.out.println(Arrays.toString(arr));
-		}
 		double[][] inputs = new double[images.length][];
 		for(int i = 0; i < inputs.length; i++){
+<<<<<<< HEAD
 			inputs[i] = ImageUtils.getDataFromBufferedImage(images[i]);
 			//inputs[i] = ImageUtils.getCondensedData(images[i]);
 		}
 		network = new NeuralNetwork(new int[]{inputs[0].length,(inputs[0].length+10)*2/3,10}, new int[]{1,1,0}, "Digit",500,Math.pow(0.03, 2)/2);
 		network.train(inputs, outputs, 0.1, 0.9, 1, false);
+=======
+			//inputs[i] = ImageUtils.getDataFromBufferedImage(images[i]);
+			inputs[i] = ImageUtils.getDataFromBufferedImage(images[i]);
+		}
+		network = new NeuralNetwork(new int[]{inputs[0].length,(inputs[0].length+10)*2/3,10}, new int[]{1,1,0}, "Digit",500,Math.pow(0.03, 2)/2);
+		network.train(inputs, outputs, 0.1, 0.9, 10, false);
+>>>>>>> origin/master
 		//saveNeuralNetwork(network,"DigitRecognizer.net");
 		network.writeToDisk("DigitRecognizer.net");
 		System.out.println("Saved!");
@@ -60,7 +65,7 @@ public class DigitRecognizer {
 	public int guess(String path) throws IOException{
 		BufferedImage image = ImageUtils.toBufferedImage(ImageIO.read(new File(path)).getScaledInstance(WIDTH, HEIGHT, BufferedImage.SCALE_FAST));
 		//double[] input = ImageUtils.getDataFromBufferedImage(image);
-		double[] input = ImageUtils.getCondensedData(image);
+		double[] input = ImageUtils.getDataFromBufferedImage(image);
 		double[] result = network.guess(input);
 		String binary = "";
 		for(int i = 0; i < result.length; i++){
