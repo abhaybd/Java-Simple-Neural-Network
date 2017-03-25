@@ -56,7 +56,7 @@ public class Guesser {
 			for(int i = 0; i < data.length; i++){
 				DataPoint dp = data[i];
 				System.out.println("========================\nTesting: " + i);
-				System.out.println(Arrays.toString(network.guess(ImageUtils.getCondensedData(dp.input),network.isClassification())));
+				System.out.println(Arrays.toString(network.guess(ImageUtils.getDataFromBufferedImage(dp.input),network.isClassification())));
 				System.out.println(Arrays.toString(dp.output));				
 			}
 		} catch (IOException e) {
@@ -77,7 +77,7 @@ public class Guesser {
 			while(Integer.parseInt(Arrays.toString(output[i]).replaceAll("\\D|(\\.\\d)", ""),2) != toGuess){
 				i++;
 			}
-			System.out.println(Arrays.toString(network.guess(ImageUtils.getCondensedData(images[i]))));
+			System.out.println(Arrays.toString(network.guess(ImageUtils.getDataFromBufferedImage(images[i]))));
 			System.out.println(output[i][0]);
 		} catch(IOException e){
 			e.printStackTrace();

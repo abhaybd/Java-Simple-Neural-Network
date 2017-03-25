@@ -105,14 +105,14 @@ public class ImageUtils {
 	    // Return the buffered image
 	    return bimage;
 	}
-	private static double black = -1;
+	private static double white = -1;
 	public static double[] getDataFromBufferedImage(BufferedImage img){
-		if(black == -1) black = Color.BLACK.getRGB();
+		if(white == -1) white = Color.WHITE.getRGB();
 		double[] toReturn = new double[img.getWidth()*img.getHeight()];
 		int index = 0;
 		for(int i = 0; i < img.getWidth(); i++){
 			for(int j = 0; j < img.getHeight(); j++){
-				toReturn[index] = img.getRGB(j,i) != black?1:-1;;
+				toReturn[index] = img.getRGB(j,i)/white;
 				index++;
 			}
 		}
