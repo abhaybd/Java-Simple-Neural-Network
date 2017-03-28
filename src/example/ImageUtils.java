@@ -116,11 +116,7 @@ public class ImageUtils {
 		int index = 0;
 		for(int i = 0; i < img.getWidth(); i++){
 			for(int j = 0; j < img.getHeight(); j++){
-<<<<<<< HEAD
 				toReturn[index] = img.getRGB(j,i)/white;
-=======
-				toReturn[index] = img.getRGB(j,i) != black?1:-1;
->>>>>>> origin/master
 				index++;
 			}
 		}
