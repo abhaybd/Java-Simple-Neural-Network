@@ -1,4 +1,4 @@
-package neuralnetwork;
+package com.coolioasjulio.neuralnetwork;
 
 public class Dendrite implements java.io.Serializable{
 	private static final long serialVersionUID = 1L;

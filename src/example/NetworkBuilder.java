@@ -6,9 +6,9 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.Scanner;
 
-import neuralnetwork.InputUtils;
-import neuralnetwork.NeuralNetwork;
-import neuralnetwork.InputUtils.InvalidInputException;
+import com.coolioasjulio.neuralnetwork.InputUtils;
+import com.coolioasjulio.neuralnetwork.NeuralNetwork;
+import com.coolioasjulio.neuralnetwork.InputUtils.InvalidInputException;
 
 public class NetworkBuilder {
 	public static void main(String[] args){

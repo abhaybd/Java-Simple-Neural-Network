@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Random;
 
-import neuralnetwork.NeuralNetwork;
+import com.coolioasjulio.neuralnetwork.NeuralNetwork;
 
 public class SixRecognizer {
 	public static void main(String[] args) throws IOException{

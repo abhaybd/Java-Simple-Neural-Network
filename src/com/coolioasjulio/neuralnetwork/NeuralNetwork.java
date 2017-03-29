@@ -1,4 +1,4 @@
-package neuralnetwork;
+package com.coolioasjulio.neuralnetwork;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -14,6 +14,11 @@ import java.util.Scanner;
 public class NeuralNetwork implements java.io.Serializable{
 	private static final long serialVersionUID = 1L;
 	
+	/**
+	 * Read a neural network from disk. NOT WORKING.
+	 * @param path to read from
+	 * @return Neural Network instance
+	 */
 	public static NeuralNetwork readFromDisk(String path){
 		File file = new File(path);
 		if(!file.exists() || file.isDirectory()){
@@ -77,10 +82,24 @@ public class NeuralNetwork implements java.io.Serializable{
 	protected NeuronLayer[] layers;
 	private DataVisualizer dv = null;
 	private boolean trainedWithSoftMax = false;
+	
+	/**
+	 * Instantiate Neural Network with specified layers and bias.
+	 * @param layers int array specifying number of neurons in each layer. {2,2,1} mains 2 inputs, 2 hidden, 1 output
+	 * @param bias Structured similarly to above, but for bias neurons. Generally, only 1 bias is needed per layer, because the weights can change.
+	 */
 	public NeuralNetwork(int[] layers, int[] bias){
 		init(layers,bias);
 	}
 	
+	/**
+	 * Instantiate Neural Network with specified layers and bias, and a visualizer window.
+	 * @param layers int array specifying number of neurons in each layer. {2,2,1} mains 2 inputs, 2 hidden, 1 output
+	 * @param bias Structured similarly to above, but for bias neurons. Generally, only 1 bias is needed per layer, because the weights can change.
+	 * @param title Title for visualizer window
+	 * @param scale Number to scale the values by on the window. (aesthetics only)
+	 * @param threshold Threshold to display on the window.
+	 */
 	public NeuralNetwork(int[] layers, int[] bias, String title, float scale, double threshold){
 		init(layers, bias);
 		dv = new DataVisualizer(title,scale,threshold);
@@ -101,7 +120,11 @@ public class NeuralNetwork implements java.io.Serializable{
 		}
 		randomWeights();
 	}
-		
+	
+	/**
+	 * Instatiate neural network with neuron layers.
+	 * @param layers Neuron layers
+	 */
 	public NeuralNetwork(NeuronLayer[] layers){
 		this.layers = layers;
 	}
@@ -114,18 +137,46 @@ public class NeuralNetwork implements java.io.Serializable{
 		return layers;
 	}
 	
+	/**
+	 * Evaluate output from supplied input
+	 * @param input to use
+	 * @return output gotten from input
+	 */
 	public double[] guess(double[] input){
 		return evaluate(input);
 	}
 	
+	/**
+	 * Evaluate output from supplied input using softmax. This scales the output neurons so the sum of all the outputs is 1.
+	 * @param input Input to use
+	 * @param softMax Whether to use softmax or not.
+	 * @return Output gotten from input
+	 */
 	public double[] guess(double[] input, boolean softMax){
 		return evaluate(input, softMax);
 	}
 	
+	/**
+	 * Train neural network with supplied parameters
+	 * @param inputs Inputs to train with
+	 * @param outputs Outputs corresponding to inputs
+	 * @param learningRate Learning rate
+	 * @param momentum Momentum
+	 * @param maxIterations Maximum iterations of training to run.
+	 */
 	public void train(double[][] inputs, double[][] outputs, double learningRate, double momentum, int maxIterations){
 		train(inputs, outputs, learningRate, momentum, maxIterations, false);
 	}
 	
+	/**
+	 * Train neural network with supplied parameters
+	 * @param inputs Inputs to train with
+	 * @param outputs Outputs corresponding to inputs
+	 * @param learningRate Learning rate
+	 * @param momentum Momentum
+	 * @param maxIterations Maximum iterations of training to run.
+	 * @param classification use softmax?
+	 */
 	public void train(double[][] inputs, double[][] outputs, double learningRate, double momentum, int maxIterations, boolean classification){
 		trainedWithSoftMax = classification;
 		int runs = 0;
@@ -152,10 +203,27 @@ public class NeuralNetwork implements java.io.Serializable{
 		//printWeights();
 	}
 	
+	/**
+	 * Train neural network with supplied parameters
+	 * @param inputs Inputs to train with
+	 * @param outputs Outputs corresponding to inputs
+	 * @param learningRate Learning rate
+	 * @param momentum Momentum
+	 * @param maxTime max number of milliseconds to train for
+	 */
 	public void trainForMilliseconds(double[][] inputs, double[][] outputs, double learningRate, double momentum, long maxTime){
 		trainForMilliSeconds(inputs, outputs, learningRate, momentum, maxTime, false);
 	}
 	
+	/**
+	 * Train neural network with supplied parameters
+	 * @param inputs Inputs to train with
+	 * @param outputs Outputs corresponding to inputs
+	 * @param learningRate Learning rate
+	 * @param momentum Momentum
+	 * @param maxTime max number of milliseconds to train for
+	 * @param classification use softmax?
+	 */
 	public void trainForMilliSeconds(double[][] inputs, double[][] outputs, double learningRate, double momentum, long maxTime, boolean classification){
 		int runs = 0;
 		double startError = 0;
@@ -183,6 +251,10 @@ public class NeuralNetwork implements java.io.Serializable{
 		//printWeights();
 	}
 	
+	/**
+	 * Write neural network to disk. NOT WORKING
+	 * @param path path to write to.
+	 */
 	public void writeToDisk(String path){
 		try(DataOutputStream out = new DataOutputStream(new FileOutputStream(new File(path)))) {
 			out.writeInt(layers.length);
@@ -317,6 +389,11 @@ public class NeuralNetwork implements java.io.Serializable{
 		}
 	}
 	
+	
+	/**
+	 * Print all the weights to the supplied printstream.
+	 * @param out PrintStream to print out to.
+	 */
 	public void printWeights(java.io.PrintStream out){
 		for(int i = 0; i < layers.length-1; i++){
 			NeuronLayer layer = layers[i];

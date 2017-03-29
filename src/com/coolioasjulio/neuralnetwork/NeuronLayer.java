@@ -1,4 +1,4 @@
-package neuralnetwork;
+package com.coolioasjulio.neuralnetwork;
 
 import java.util.Arrays;
 

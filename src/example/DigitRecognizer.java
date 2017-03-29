@@ -12,7 +12,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
-import neuralnetwork.NeuralNetwork;
+import com.coolioasjulio.neuralnetwork.NeuralNetwork;
 
 public class DigitRecognizer {
 	public static final int WIDTH = 28;
