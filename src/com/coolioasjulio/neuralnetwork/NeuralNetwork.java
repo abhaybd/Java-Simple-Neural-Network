@@ -9,7 +9,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Random;
 import java.util.Scanner;
+import java.util.Set;
 
 public class NeuralNetwork implements java.io.Serializable{
 	private static final long serialVersionUID = 1L;
@@ -55,7 +58,6 @@ public class NeuralNetwork implements java.io.Serializable{
 	}
 	
 	public static void main(String[] args){
-		NeuralNetwork net = new NeuralNetwork(new int[]{2,2,1}, new int[]{1,1,0},"XOR", 2000, Math.pow(0.03, 2)/2);
 		double[][] inputs = new double[][]{
 			{0,1},
 			{1,0},
@@ -63,6 +65,7 @@ public class NeuralNetwork implements java.io.Serializable{
 			{1,1}
 		};
 		double[][] output = new double[][]{{1},{1},{0},{0}};
+		NeuralNetwork net = new NeuralNetwork(new int[]{inputs[0].length,2,1}, new int[]{1,1,0},"XOR", 2000, Math.pow(0.03, 2)/2);
 		net.train(inputs, output, 0.1, 0.9, 100000);
 		net.printWeights(System.out);
 		String response = "";
@@ -80,7 +83,7 @@ public class NeuralNetwork implements java.io.Serializable{
 	}
 	
 	protected NeuronLayer[] layers;
-	private DataVisualizer dv = null;
+	//private DataVisualizer dv = null;
 	private boolean trainedWithSoftMax = false;
 	
 	/**
@@ -102,7 +105,7 @@ public class NeuralNetwork implements java.io.Serializable{
 	 */
 	public NeuralNetwork(int[] layers, int[] bias, String title, float scale, double threshold){
 		init(layers, bias);
-		dv = new DataVisualizer(title,scale,threshold);
+		//dv = new DataVisualizer(title,scale,threshold);
 		try {
 			Thread.sleep(3000);
 		} catch (InterruptedException e) {
@@ -165,7 +168,7 @@ public class NeuralNetwork implements java.io.Serializable{
 	 * @param maxIterations Maximum iterations of training to run.
 	 */
 	public void train(double[][] inputs, double[][] outputs, double learningRate, double momentum, int maxIterations){
-		train(inputs, outputs, learningRate, momentum, maxIterations, false);
+		train(inputs, outputs, learningRate, momentum, maxIterations, false, inputs.length);
 	}
 	
 	/**
@@ -177,11 +180,14 @@ public class NeuralNetwork implements java.io.Serializable{
 	 * @param maxIterations Maximum iterations of training to run.
 	 * @param classification use softmax?
 	 */
-	public void train(double[][] inputs, double[][] outputs, double learningRate, double momentum, int maxIterations, boolean classification){
+	public void train(double[][] allInputs, double[][] allOutputs, double learningRate, double momentum, int maxIterations, boolean classification, int batch){
 		trainedWithSoftMax = classification;
 		int runs = 0;
 		double startError = 0;
 		while(true){
+			Data data = getBatch(allInputs, allOutputs, batch);
+			double[][] inputs = data.input;
+			double[][] outputs = data.output;
 			HashMap<Dendrite,Double> dendriteDeltaMap = new HashMap<>();
 			double errorSum = 0;
 			for(int i = 0; i < inputs.length; i++){
@@ -193,7 +199,7 @@ public class NeuralNetwork implements java.io.Serializable{
 			}
 			double avgError = errorSum/inputs.length;
 			if(runs == 0) startError = avgError;
-			if(dv != null)dv.addError((float)avgError);
+			//if(dv != null)dv.addError((float)avgError);
 			System.out.println("Epoch: " + runs + ", error: " + avgError);
 			runs++;
 			if(runs>=maxIterations || avgError <= Math.pow(0.03, 2)/2) break;
@@ -241,7 +247,7 @@ public class NeuralNetwork implements java.io.Serializable{
 			}
 			double avgError = errorSum/inputs.length;
 			if(runs == 0) startError = avgError;
-			if(dv != null)dv.addError((float)avgError);
+			//if(dv != null)dv.addError((float)avgError);
 			System.out.println("Epoch: " + runs + ", error: " + avgError);
 			runs++;
 			done = Math.abs(System.currentTimeMillis() - startTime) >= maxTime || avgError <= Math.pow(0.03, 2)/2;
@@ -281,10 +287,42 @@ public class NeuralNetwork implements java.io.Serializable{
 		}
 	}
 	
+	static class Data { public double[][] input, output; }
+	
+	private Data getBatch(double[][] inputs, double[][] outputs, int batch){
+		Data data = new Data();
+		batch = Math.min(inputs.length, batch);
+		if(batch == inputs.length){
+			data.input = inputs;
+			data.output = outputs;
+			return data;
+		}
+		double[][] dataInput = new double[batch][];
+		double[][] dataOutput = new double[batch][];
+		Random random = new Random();
+		Set<Integer> picked = new HashSet<Integer>();
+		int currentIndex = 0;
+		for(int i = 0; i < batch; i++){
+			boolean done = false;
+			while(!done){
+				int index = random.nextInt(inputs.length);
+				done = picked.add(index);
+				if(done){
+					dataInput[currentIndex] = inputs[index];
+					dataOutput[currentIndex] = outputs[index];
+					currentIndex++;
+				}				
+			}
+		}
+		data.input = dataInput;
+		data.output = dataOutput;
+		return data;
+	}
+	
 	private double calculateAggregateError(double[] results, double[] expectedResults){
 		double error = 0;
 		for(int i = 0; i < results.length; i++){
-			error += Math.pow(expectedResults[i] - results[i], 2)/2;
+			error += Math.pow(expectedResults[i] - results[i], 2)/results.length;
 		}
 		return error;
 	}

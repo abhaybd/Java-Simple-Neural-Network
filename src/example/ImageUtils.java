@@ -17,10 +17,20 @@ import javax.swing.JLabel;
 
 public class ImageUtils {
 	public static void main(String[] args) throws IOException{
-		double[][] labels = getLabels("data/t10k-labels.idx1-ubyte");
 		BufferedImage[] images = getImages("data/t10k-images.idx3-ubyte");
-		System.out.println(labels.length + " : " + images.length);
-		System.out.println(Arrays.toString(labels[1]));
+		BufferedImage image = new BufferedImage(28, 28, BufferedImage.TYPE_INT_ARGB);
+		double[] data = getDataFromBufferedImage(images[0]);
+		int index = 0;
+		for(int y = 0; y < image.getHeight(); y++){
+			for(int x = 0; x < image.getWidth(); x++){
+				int val = Math.round((float)(data[index]*255d));
+				int rgb = new Color(val, val, val).getRGB();
+				image.setRGB(x, y, rgb);
+				index++;
+			}
+		}
+		showImage(images[0]);
+		showImage(image);
 	}
 	
 	public static double[][] getLabels(String path) throws IOException{
@@ -55,11 +65,7 @@ public class ImageUtils {
 				for(int x = 0; x < rows; x++){
 					for(int y = 0; y < cols; y++){
 						int val = in.read();
-						int rgb = Color.BLACK.getRGB();
-						if(val > 5){
-							rgb = Color.WHITE.getRGB();
-						}
-						image.setRGB(y, x, rgb);
+						image.setRGB(y, x, new Color(val, val, val).getRGB());
 					}
 				}
 				images[i] = image;
@@ -110,13 +116,15 @@ public class ImageUtils {
 	    return bimage;
 	}
 	private static double white = -1;
+	private static double black = -1;
 	public static double[] getDataFromBufferedImage(BufferedImage img){
 		if(white == -1) white = Color.WHITE.getRGB();
+		if(black == -1) black = Color.BLACK.getRGB();
 		double[] toReturn = new double[img.getWidth()*img.getHeight()];
 		int index = 0;
-		for(int i = 0; i < img.getWidth(); i++){
-			for(int j = 0; j < img.getHeight(); j++){
-				toReturn[index] = img.getRGB(j,i)/white;
+		for(int y = 0; y < img.getHeight(); y++){
+			for(int x = 0; x < img.getWidth(); x++){
+				toReturn[index] = (img.getRGB(x,y)-black)/(white-black);
 				index++;
 			}
 		}
