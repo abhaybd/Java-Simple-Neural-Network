@@ -124,7 +124,7 @@ public class ImageUtils {
 		int index = 0;
 		for(int y = 0; y < img.getHeight(); y++){
 			for(int x = 0; x < img.getWidth(); x++){
-				toReturn[index] = (img.getRGB(x,y)-black)/(white-black);
+				toReturn[index] = (img.getRGB(x,y)-black) == 0?-1:1;
 				index++;
 			}
 		}
