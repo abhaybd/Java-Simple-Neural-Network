@@ -1,9 +1,7 @@
 package com.coolioasjulio.neuralnetwork;
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,48 +12,11 @@ import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
 
+import com.coolioasjulio.neuralnetwork.activationstrategy.ActivationStrategy;
+import com.coolioasjulio.neuralnetwork.activationstrategy.SigmoidActivationStrategy;
+
 public class NeuralNetwork implements java.io.Serializable{
 	private static final long serialVersionUID = 1L;
-	
-	/**
-	 * Read a neural network from disk. NOT WORKING.
-	 * @param path to read from
-	 * @return Neural Network instance
-	 */
-	public static NeuralNetwork readFromDisk(String path){
-		File file = new File(path);
-		if(!file.exists() || file.isDirectory()){
-			return null;
-		}
-		
-		try(DataInputStream in = new DataInputStream(new FileInputStream(file))){
-			int numLayers = in.readInt();
-			NeuronLayer[] layers = new NeuronLayer[numLayers];
-			for(int a= 0; a < numLayers; a++){
-				layers[a] = new NeuronLayer(null,in.readInt(),in.readInt());
-			}
-			for(int i = 0; i < layers.length-1; i++){
-				NeuronLayer layer = layers[i];
-				for(int j = 0; j < layer.getNeurons().length; j++){
-					Dendrite[] dendrites = new Dendrite[in.readInt()];
-					for(int k = 0; k < layers[i+1].getNeurons().length; k++){
-						dendrites[k] = new Dendrite(layer.getNeurons()[j],layers[i+1].getNeurons()[k],in.readDouble());
-					}
-				}
-				for(int j = 0; j < layer.getBiasNeurons().length; j++){
-					Dendrite[] dendrites = new Dendrite[in.readInt()];
-					for(int k = 0; k < layers[i+1].getNeurons().length; k++){
-						dendrites[k] = new Dendrite(layer.getBiasNeurons()[j],layers[i+1].getNeurons()[k],in.readDouble());
-					}
-				}
-			}
-			return new NeuralNetwork(layers);
-			
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
 	
 	public static void main(String[] args){
 		double[][] inputs = new double[][]{
@@ -92,7 +53,11 @@ public class NeuralNetwork implements java.io.Serializable{
 	 * @param bias Structured similarly to above, but for bias neurons. Generally, only 1 bias is needed per layer, because the weights can change.
 	 */
 	public NeuralNetwork(int[] layers, int[] bias){
-		init(layers,bias);
+		init(layers, bias, SigmoidActivationStrategy.fillArray(layers.length));
+	}
+	
+	public NeuralNetwork(NeuralNetworkParams params){
+		init(params.layers, params.bias, params.strategies);
 	}
 	
 	/**
@@ -104,7 +69,7 @@ public class NeuralNetwork implements java.io.Serializable{
 	 * @param threshold Threshold to display on the window.
 	 */
 	public NeuralNetwork(int[] layers, int[] bias, String title, float scale, double threshold){
-		init(layers, bias);
+		init(layers, bias, SigmoidActivationStrategy.fillArray(layers.length));
 		//dv = new DataVisualizer(title,scale,threshold);
 		try {
 			Thread.sleep(3000);
@@ -113,13 +78,18 @@ public class NeuralNetwork implements java.io.Serializable{
 		}
 	}
 	
-	private void init(int[] layers, int[] bias){
+	static class NeuralNetworkParams{ 
+		public int[] layers, bias;
+		public ActivationStrategy[] strategies;
+	}
+	
+	private void init(int[] layers, int[] bias, ActivationStrategy[] strategies){
 		if(bias == null || bias.length != layers.length){
 			bias = new int[layers.length];
 		}
 		this.layers = new NeuronLayer[layers.length];
 		for(int i = 0; i < layers.length; i++){
-			this.layers[i] = new NeuronLayer(this,layers[i],bias[i]);
+			this.layers[i] = new NeuronLayer(this,layers[i],bias[i], strategies[i]);
 		}
 		randomWeights();
 	}
@@ -179,6 +149,7 @@ public class NeuralNetwork implements java.io.Serializable{
 	 * @param momentum Momentum
 	 * @param maxIterations Maximum iterations of training to run.
 	 * @param classification use softmax?
+	 * @param batch size of batch to use for Stochastic Gradient Descent
 	 */
 	public void train(double[][] allInputs, double[][] allOutputs, double learningRate, double momentum, int maxIterations, boolean classification, int batch){
 		trainedWithSoftMax = classification;
@@ -420,7 +391,7 @@ public class NeuralNetwork implements java.io.Serializable{
 						delta += momentum * dendriteDeltaMap.get(dendrite);
 						//System.out.println("momentum!");
 					}
-					dendriteDeltaMap.put(dendrite, delta);
+					dendriteDeltaMap.put(dendrite, -delta);
 					dendrite.adjustWeight(-delta);
 				}
 			}

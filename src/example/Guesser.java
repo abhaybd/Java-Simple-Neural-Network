@@ -42,26 +42,30 @@ public class Guesser {
 		try{
 			BufferedImage[] images = ImageUtils.getImages("data/train-images.idx3-ubyte");
 			double[][] output = ImageUtils.getLabels("data/train-labels.idx1-ubyte");
-			DataPoint[] data = new DataPoint[10];
-			for(int i = 0; i < images.length; i++){
-				int index = indexOf(output[i],1);
-				if(data[index] == null){
-					DataPoint dp = new DataPoint();
-					dp.input = images[i];
-					dp.output = output[i];
-					data[index] = dp;
-				}
-				if(!containsNull(data)) break;
-			}
-			for(int i = 0; i < data.length; i++){
-				DataPoint dp = data[i];
-				System.out.println("========================\nTesting: " + i);
-				System.out.println(Arrays.toString(network.guess(ImageUtils.getDataFromBufferedImage(dp.input),network.isClassification())));
-				System.out.println(Arrays.toString(dp.output));				
-			}
+			guessAll(network,images,output);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public static void guessAll(NeuralNetwork network, BufferedImage[] images, double[][] output){
+		DataPoint[] data = new DataPoint[10];
+		for(int i = 0; i < images.length; i++){
+			int index = indexOf(output[i],1);
+			if(data[index] == null){
+				DataPoint dp = new DataPoint();
+				dp.input = images[i];
+				dp.output = output[i];
+				data[index] = dp;
+			}
+			if(!containsNull(data)) break;
+		}
+		for(int i = 0; i < data.length; i++){
+			DataPoint dp = data[i];
+			System.out.println("========================\nTesting: " + i);
+			System.out.println(Arrays.toString(network.guess(ImageUtils.getDataFromBufferedImage(dp.input),network.isClassification())));
+			System.out.println(Arrays.toString(dp.output));				
+		}		
 	}
 	
 	static class DataPoint{

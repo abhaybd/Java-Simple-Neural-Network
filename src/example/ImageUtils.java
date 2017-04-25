@@ -15,6 +15,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
+@SuppressWarnings("unused")
 public class ImageUtils {
 	public static void main(String[] args) throws IOException{
 		BufferedImage[] images = getImages("data/t10k-images.idx3-ubyte");
@@ -37,7 +38,7 @@ public class ImageUtils {
 		try(DataInputStream in = new DataInputStream(new FileInputStream(path))){
 			in.readInt();
 			int numLabels = in.readInt();
-			numLabels = 100;
+			//numLabels = 100;
 			double[][] labels = new double[numLabels][10];
 			for(int i = 0; i < labels.length; i++){
 				int val = in.read();
@@ -54,7 +55,7 @@ public class ImageUtils {
 		try(DataInputStream in = new DataInputStream(new FileInputStream(path))){
 			in.readInt();
 			int numImages = in.readInt();
-			numImages = 100;
+			//numImages = 100;
 			int rows = in.readInt();
 			int cols = in.readInt();
 			

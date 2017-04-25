@@ -2,6 +2,8 @@ package com.coolioasjulio.neuralnetwork;
 
 import java.util.Arrays;
 
+import com.coolioasjulio.neuralnetwork.activationstrategy.ActivationStrategy;
+
 public class NeuronLayer implements java.io.Serializable{
 	private static final long serialVersionUID = 1L;
 	private Neuron[] neurons;
@@ -9,15 +11,15 @@ public class NeuronLayer implements java.io.Serializable{
 	private NeuralNetwork network;
 	private boolean isInput;
 	private boolean isOutput;
-	public NeuronLayer(NeuralNetwork network, int neurons, int biasNeurons){
+	public NeuronLayer(NeuralNetwork network, int neurons, int biasNeurons, ActivationStrategy strategy){
 		this.network = network;
 		this.neurons = new Neuron[neurons];
 		for(int i = 0; i < neurons; i++){
-			this.neurons[i] = new Neuron(this);
+			this.neurons[i] = new Neuron(this, strategy);
 		}
 		bias = new Neuron[biasNeurons];
 		for(int i = 0; i < biasNeurons; i++){
-			bias[i] = new Neuron(this);
+			bias[i] = new Neuron(this, strategy);
 			bias[i].output = 1;
 		}
 		if(network != null){

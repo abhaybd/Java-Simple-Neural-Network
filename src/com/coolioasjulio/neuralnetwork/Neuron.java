@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import com.coolioasjulio.neuralnetwork.activationstrategy.ActivationStrategy;
+
 public class Neuron implements java.io.Serializable{
 	private static final long serialVersionUID = 1L;
 	public Dendrite[] dendrites;
@@ -12,13 +14,16 @@ public class Neuron implements java.io.Serializable{
 	public double output;
 	public double error;
 	private ArrayList<Dendrite> inputs;
-	public Neuron(NeuronLayer layer){
+	private ActivationStrategy strategy;
+	
+	public Neuron(NeuronLayer layer, ActivationStrategy strategy){
 		this.layer = layer;
 		weightedSum = 0;
 		output = 0;
 		error = 0;
 		inputs = new ArrayList<Dendrite>();
 		dendrites = new Dendrite[0];
+		this.strategy = strategy;
 	}
 	
 	public void setDendrites(Dendrite[] dendrites){
@@ -50,7 +55,7 @@ public class Neuron implements java.io.Serializable{
 	}
 	
 	public double activationFunction(){
-		output = 1/(1+Math.pow(Math.E, -weightedSum)); //sigmoid the neuron value
+		output = strategy.activate(weightedSum);
 		return output;
 	}
 	
@@ -59,7 +64,7 @@ public class Neuron implements java.io.Serializable{
 	}
 	
 	public double getDerivative(){
-		return output*(1-output);
+		return strategy.derivativeOutput(output);
 	}
 	
 	public void setUpDendrites(NeuronLayer nextLayer, boolean isBias){

@@ -26,8 +26,8 @@ public class DigitRecognizer {
 		System.out.println(Arrays.toString(outputs[0]));
 		int size = inputs[0].length;
 		network = new NeuralNetwork(new int[]{size, (size+10)*2/3, 10}, new int[]{1,1,0});
-		network.train(inputs, outputs, 0.1, 0.9, 500, false, 10);
+		network.train(inputs, outputs, 0.1, 0.9, 500, false	, 10);
 		
-		Guesser.guessAll(network);
+		Guesser.guessAll(network,images,outputs);
 	}
 }
