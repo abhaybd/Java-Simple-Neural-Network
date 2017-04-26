@@ -12,6 +12,9 @@ import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
 
+import javax.swing.JButton;
+import javax.swing.JFrame;
+
 import com.coolioasjulio.neuralnetwork.activationstrategy.ActivationStrategy;
 import com.coolioasjulio.neuralnetwork.activationstrategy.SigmoidActivationStrategy;
 
@@ -27,7 +30,7 @@ public class NeuralNetwork implements java.io.Serializable{
 		};
 		double[][] output = new double[][]{{1},{1},{0},{0}};
 		NeuralNetwork net = new NeuralNetwork(new int[]{inputs[0].length,2,1}, new int[]{1,1,0},"XOR", 2000, Math.pow(0.03, 2)/2);
-		net.train(inputs, output, 0.1, 0.9, 100000);
+		net.train(inputs, output, 0.1, 0.9, 0.0001);
 		net.printWeights(System.out);
 		String response = "";
 		Scanner input = new Scanner(System.in);
@@ -71,11 +74,6 @@ public class NeuralNetwork implements java.io.Serializable{
 	public NeuralNetwork(int[] layers, int[] bias, String title, float scale, double threshold){
 		init(layers, bias, SigmoidActivationStrategy.fillArray(layers.length));
 		//dv = new DataVisualizer(title,scale,threshold);
-		try {
-			Thread.sleep(3000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
 	}
 	
 	static class NeuralNetworkParams{ 
@@ -137,8 +135,8 @@ public class NeuralNetwork implements java.io.Serializable{
 	 * @param momentum Momentum
 	 * @param maxIterations Maximum iterations of training to run.
 	 */
-	public void train(double[][] inputs, double[][] outputs, double learningRate, double momentum, int maxIterations){
-		train(inputs, outputs, learningRate, momentum, maxIterations, false, inputs.length);
+	public void train(double[][] inputs, double[][] outputs, double learningRate, double momentum, double errorThreshold){
+		train(inputs, outputs, learningRate, momentum, errorThreshold, false, inputs.length);
 	}
 	
 	/**
@@ -151,10 +149,11 @@ public class NeuralNetwork implements java.io.Serializable{
 	 * @param classification use softmax?
 	 * @param batch size of batch to use for Stochastic Gradient Descent
 	 */
-	public void train(double[][] allInputs, double[][] allOutputs, double learningRate, double momentum, int maxIterations, boolean classification, int batch){
+	public void train(double[][] allInputs, double[][] allOutputs, double learningRate, double momentum, double errorThreshold, boolean classification, int batch){
 		trainedWithSoftMax = classification;
 		int runs = 0;
 		double startError = 0;
+		stopButton();
 		while(true){
 			Data data = getBatch(allInputs, allOutputs, batch);
 			double[][] inputs = data.input;
@@ -173,7 +172,7 @@ public class NeuralNetwork implements java.io.Serializable{
 			//if(dv != null)dv.addError((float)avgError);
 			System.out.println("Epoch: " + runs + ", error: " + avgError);
 			runs++;
-			if(runs>=maxIterations || avgError <= Math.pow(0.03, 2)/2) break;
+			if(avgError <= errorThreshold || stop) break;
 		}
 		System.out.println("\nFinished!");
 		System.out.println("Start error: " + startError);
@@ -192,6 +191,8 @@ public class NeuralNetwork implements java.io.Serializable{
 		trainForMilliSeconds(inputs, outputs, learningRate, momentum, maxTime, false);
 	}
 	
+	boolean stop = false;
+	
 	/**
 	 * Train neural network with supplied parameters
 	 * @param inputs Inputs to train with
@@ -206,6 +207,7 @@ public class NeuralNetwork implements java.io.Serializable{
 		double startError = 0;
 		long startTime = System.currentTimeMillis();
 		boolean done = false;
+		stopButton();
 		while(!done){
 			HashMap<Dendrite,Double> dendriteDeltaMap = new HashMap<>();
 			double errorSum = 0;
@@ -221,11 +223,22 @@ public class NeuralNetwork implements java.io.Serializable{
 			//if(dv != null)dv.addError((float)avgError);
 			System.out.println("Epoch: " + runs + ", error: " + avgError);
 			runs++;
-			done = Math.abs(System.currentTimeMillis() - startTime) >= maxTime || avgError <= Math.pow(0.03, 2)/2;
+			done = Math.abs(System.currentTimeMillis() - startTime) >= maxTime || avgError <= Math.pow(0.03, 2)/2 || stop;
 		}
 		System.out.println("\nFinished after running for " + Math.abs(System.currentTimeMillis() - startTime)/1000 + " seconds!");
 		System.out.println("Start error: " + startError);
 		//printWeights();
+	}
+	
+	private void stopButton(){
+		JFrame frame = new JFrame();
+		JButton button = new JButton("Stop");
+		button.addActionListener(e -> {
+			stop = true;
+		});
+		frame.getContentPane().add(button);
+		frame.pack();
+		frame.setVisible(true);
 	}
 	
 	/**
@@ -293,9 +306,9 @@ public class NeuralNetwork implements java.io.Serializable{
 	private double calculateAggregateError(double[] results, double[] expectedResults){
 		double error = 0;
 		for(int i = 0; i < results.length; i++){
-			error += Math.pow(expectedResults[i] - results[i], 2)/results.length;
+			error += Math.pow(expectedResults[i] - results[i], 2);
 		}
-		return error;
+		return error/2;
 	}
 	
 	private double[] evaluate(double[] input){

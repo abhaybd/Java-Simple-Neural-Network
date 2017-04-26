@@ -19,15 +19,15 @@ public class DigitRecognizer {
 		double[][] outputs = ImageUtils.getLabels(labelPath);
 		double[][] inputs = new double[images.length][];
 		for(int i = 0; i < images.length; i++){
-			inputs[i] = ImageUtils.getDataFromBufferedImage(images[i]);
+			inputs[i] = ImageUtils.getCondensedData(images[i]);
 		}
 		ImageUtils.showImage(images[0]);
 		System.out.println(Arrays.toString(inputs[0]));
 		System.out.println(Arrays.toString(outputs[0]));
 		int size = inputs[0].length;
 		network = new NeuralNetwork(new int[]{size, (size+10)*2/3, 10}, new int[]{1,1,0});
-		network.train(inputs, outputs, 0.1, 0.9, 500, false	, 10);
+		network.train(inputs, outputs, 0.1, 0.9, 0.1);
 		
-		Guesser.guessAll(network,images,outputs);
+		Guesser.guessAll(network);
 	}
 }

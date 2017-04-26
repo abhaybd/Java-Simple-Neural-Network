@@ -40,8 +40,8 @@ public class Guesser {
 	
 	public static void guessAll(NeuralNetwork network){
 		try{
-			BufferedImage[] images = ImageUtils.getImages("data/train-images.idx3-ubyte");
-			double[][] output = ImageUtils.getLabels("data/train-labels.idx1-ubyte");
+			BufferedImage[] images = ImageUtils.getImages("data/t10k-images.idx3-ubyte");
+			double[][] output = ImageUtils.getLabels("data/t10k-labels.idx1-ubyte");
 			guessAll(network,images,output);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -63,7 +63,7 @@ public class Guesser {
 		for(int i = 0; i < data.length; i++){
 			DataPoint dp = data[i];
 			System.out.println("========================\nTesting: " + i);
-			System.out.println(Arrays.toString(network.guess(ImageUtils.getDataFromBufferedImage(dp.input),network.isClassification())));
+			System.out.println(Arrays.toString(network.guess(ImageUtils.getCondensedData(dp.input),network.isClassification())));
 			System.out.println(Arrays.toString(dp.output));				
 		}		
 	}

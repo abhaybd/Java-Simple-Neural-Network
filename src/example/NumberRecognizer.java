@@ -23,7 +23,7 @@ public class NumberRecognizer {
 		}
 		int size = inputs[0].length;
 		NeuralNetwork network = new NeuralNetwork(new int[]{size, size/2, 28, 1}, new int[]{1,1,0});
-		network.train(inputs, outputs, 0.5, 0.9, 500);
+		network.train(inputs, outputs, 0.5, 0.9, 0.05);
 		guess(network, number);
 	}
 	
