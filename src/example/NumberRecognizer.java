@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Random;
 
 import com.coolioasjulio.neuralnetwork.NeuralNetwork;
+import com.coolioasjulio.neuralnetwork.utils.ImageUtils;
 
 public class NumberRecognizer {
 	public static void main(String[] args) throws IOException{

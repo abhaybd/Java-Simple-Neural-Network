@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Random;
 
 import com.coolioasjulio.neuralnetwork.NeuralNetwork;
+import com.coolioasjulio.neuralnetwork.utils.ImageUtils;
 
 public class Guesser {
 	
@@ -63,7 +64,7 @@ public class Guesser {
 		for(int i = 0; i < data.length; i++){
 			DataPoint dp = data[i];
 			System.out.println("========================\nTesting: " + i);
-			System.out.println(Arrays.toString(network.guess(ImageUtils.getCondensedData(dp.input),network.isClassification())));
+			System.out.println(Arrays.toString(network.guess(ImageUtils.getDataFromBufferedImage(dp.input),true)));
 			System.out.println(Arrays.toString(dp.output));				
 		}		
 	}

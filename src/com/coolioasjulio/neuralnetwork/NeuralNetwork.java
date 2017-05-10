@@ -2,8 +2,10 @@ package com.coolioasjulio.neuralnetwork;
 
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -56,7 +58,7 @@ public class NeuralNetwork implements java.io.Serializable{
 	 * @param bias Structured similarly to above, but for bias neurons. Generally, only 1 bias is needed per layer, because the weights can change.
 	 */
 	public NeuralNetwork(int[] layers, int[] bias){
-		init(layers, bias, SigmoidActivationStrategy.fillArray(layers.length));
+		init(layers, bias, ActivationStrategy.fillArray(SigmoidActivationStrategy.class, layers.length));
 	}
 	
 	public NeuralNetwork(NeuralNetworkParams params){
@@ -72,7 +74,7 @@ public class NeuralNetwork implements java.io.Serializable{
 	 * @param threshold Threshold to display on the window.
 	 */
 	public NeuralNetwork(int[] layers, int[] bias, String title, float scale, double threshold){
-		init(layers, bias, SigmoidActivationStrategy.fillArray(layers.length));
+		init(layers, bias, ActivationStrategy.fillArray(SigmoidActivationStrategy.class, layers.length));
 		//dv = new DataVisualizer(title,scale,threshold);
 	}
 	
@@ -154,6 +156,8 @@ public class NeuralNetwork implements java.io.Serializable{
 		int runs = 0;
 		double startError = 0;
 		stopButton();
+		double lastError = -1;
+		double runningError = 0;
 		while(true){
 			Data data = getBatch(allInputs, allOutputs, batch);
 			double[][] inputs = data.input;
@@ -167,16 +171,20 @@ public class NeuralNetwork implements java.io.Serializable{
 				getErrors(results, outputs[i]);
 				updateWeights(dendriteDeltaMap, learningRate, momentum);
 			}
-			double avgError = errorSum/inputs.length;
-			if(runs == 0) startError = avgError;
+			double batchError = errorSum/inputs.length;
+			runningError += batchError;
+			if(runs == 0) startError = batchError;
 			//if(dv != null)dv.addError((float)avgError);
-			System.out.println("Epoch: " + runs + ", error: " + avgError);
+			if(runs % 25 == 0){
+				lastError = runningError/25d;
+				runningError = 0;
+			}
+			System.out.println("Epoch: " + runs + ", error: " + batchError + ", avgError: " + lastError);
 			runs++;
-			if(avgError <= errorThreshold || stop) break;
+			if(lastError <= errorThreshold && runs > 100 || stop) break;
 		}
 		System.out.println("\nFinished!");
 		System.out.println("Start error: " + startError);
-		//printWeights();
 	}
 	
 	/**
@@ -233,8 +241,17 @@ public class NeuralNetwork implements java.io.Serializable{
 	private void stopButton(){
 		JFrame frame = new JFrame();
 		JButton button = new JButton("Stop");
+		JButton weights = new JButton("Print weights");
 		button.addActionListener(e -> {
 			stop = true;
+		});
+		weights.addActionListener(e -> {
+			try {
+				PrintStream out = new PrintStream(new FileOutputStream("weights.log"));
+				printWeights(out);
+			} catch (FileNotFoundException e1) {
+				e1.printStackTrace();
+			}
 		});
 		frame.getContentPane().add(button);
 		frame.pack();
