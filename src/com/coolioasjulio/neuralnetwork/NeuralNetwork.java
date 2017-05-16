@@ -102,11 +102,11 @@ public class NeuralNetwork implements java.io.Serializable{
 	 * @param bias Structured similarly to above, but for bias neurons. Generally, only 1 bias is needed per layer, because the weights can change.
 	 */
 	public NeuralNetwork(int[] layers, int[] bias){
-		init(layers, bias, ActivationStrategy.fillArray(SigmoidActivationStrategy.class, layers.length));
+		init(layers, bias, ActivationStrategy.fillArray(SigmoidActivationStrategy.class, layers.length), null);
 	}
 	
 	public NeuralNetwork(NeuralNetworkParams params){
-		init(params.layers, params.bias, params.strategies);
+		init(params.layers, params.bias, params.strategies, params.title);
 	}
 	
 	/**
@@ -118,16 +118,20 @@ public class NeuralNetwork implements java.io.Serializable{
 	 * @param threshold Threshold to display on the window.
 	 */
 	public NeuralNetwork(int[] layers, int[] bias, String title){
-		init(layers, bias, ActivationStrategy.fillArray(SigmoidActivationStrategy.class, layers.length));
-		dv = new DataVisualizer(title);
+		init(layers, bias, ActivationStrategy.fillArray(SigmoidActivationStrategy.class, layers.length), title);
 	}
 	
-	static class NeuralNetworkParams{ 
+	public static class NeuralNetworkParams{
+		public NeuralNetworkParams(int[] layers){
+			this.layers = layers;
+		}
 		public int[] layers, bias;
 		public ActivationStrategy[] strategies;
+		public String title;
 	}
 	
-	private void init(int[] layers, int[] bias, ActivationStrategy[] strategies){
+	private void init(int[] layers, int[] bias, ActivationStrategy[] strategies, String title){
+		if(title != null) dv = new DataVisualizer(title);
 		if(bias == null || bias.length != layers.length){
 			bias = new int[layers.length];
 		}
