@@ -34,6 +34,12 @@ public class ImageUtils {
 		showImage(image);
 	}
 	
+	/**
+	 * Get labels according to the idx1-ubyte file format
+	 * @param path to label file
+	 * @return double[][] of the labels
+	 * @throws IOException
+	 */
 	public static double[][] getLabels(String path) throws IOException{
 		try(DataInputStream in = new DataInputStream(new FileInputStream(path))){
 			in.readInt();
@@ -51,6 +57,12 @@ public class ImageUtils {
 		}
 	}
 	
+	/**
+	 * Gets images from file in idx3-ubyte file format
+	 * @param path to image file
+	 * @return BufferedImage[] of all the images
+	 * @throws IOException
+	 */
 	public static BufferedImage[] getImages(String path) throws IOException{
 		try(DataInputStream in = new DataInputStream(new FileInputStream(path))){
 			in.readInt();
@@ -78,6 +90,10 @@ public class ImageUtils {
 		}
 	}
 	
+	/**
+	 * Converts BufferedImage to grayscale. This will change the supplied image
+	 * @param img image to transform
+	 */
 	public static void monoColor(BufferedImage img){
 		for(int i = 0; i < img.getWidth(); i++){
 			for(int j = 0; j < img.getHeight(); j++){
@@ -89,6 +105,10 @@ public class ImageUtils {
 		}
 	}
 	
+	/**
+	 * Instatiates a 280x280 JFrame with image in it
+	 * @param image image to display
+	 */
 	public static void showImage(BufferedImage image){
 		JFrame frame = new JFrame();
 		frame.setSize(280, 280);
@@ -98,6 +118,11 @@ public class ImageUtils {
 		frame.setVisible(true);
 	}
 	
+	/**
+	 * Convert Image to BufferedImage
+	 * @param img Image to convert
+	 * @return BufferedImage of img
+	 */
 	public static BufferedImage toBufferedImage(Image img)
 	{
 	    if (img instanceof BufferedImage)
@@ -116,11 +141,13 @@ public class ImageUtils {
 	    // Return the buffered image
 	    return bimage;
 	}
-	private static double white = -1;
-	private static double black = -1;
+	
+	/**
+	 * Gets data from BufferedImage, focused using the otsu threshold
+	 * @param img image to get data from
+	 * @return double[] of normalized data from image
+	 */
 	public static double[] getDataFromBufferedImage(BufferedImage img){
-		if(white == -1) white = Color.WHITE.getRGB();
-		if(black == -1) black = Color.BLACK.getRGB();
 		double[] toReturn = new double[img.getWidth()*img.getHeight()];
 		int index = 0;
 		for(int y = 0; y < img.getHeight(); y++){
@@ -195,6 +222,11 @@ public class ImageUtils {
 		return (color.getRed() + color.getBlue() + color.getGreen()) / 3;
 	}
 	
+	/**
+	 * Returns a double[] of length 5 which represents the supplied image. NOTE: This abstracts away much of the intricacies of the data.
+	 * @param img
+	 * @return Index 0 is width of the x-coordinate of the center of the bounding box divided by the width of the image. Index 1 is the y-coord of the bounding box divided by height of image. Index 2 is width of bounding box divided by width of image. Index 3 is height of bounding box divided by height of image. Index 4 is number of non-black pixels in image.
+	 */
 	public static double[] getCondensedData(BufferedImage img){
 		Area a = new Area();
 		int numPixels = 0;

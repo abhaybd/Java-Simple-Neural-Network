@@ -1,19 +1,24 @@
 package com.coolioasjulio.neuralnetwork;
 
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
 
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 
@@ -31,9 +36,15 @@ public class NeuralNetwork implements java.io.Serializable{
 			{1,1}
 		};
 		double[][] output = new double[][]{{1},{1},{0},{0}};
-		NeuralNetwork net = new NeuralNetwork(new int[]{inputs[0].length,2,1}, new int[]{1,1,0},"XOR", 2000, Math.pow(0.03, 2)/2);
+		NeuralNetwork net = new NeuralNetwork(new int[]{inputs[0].length,2,1}, new int[]{1,1,0}, "XOR");
 		net.train(inputs, output, 0.1, 0.9, 0.0001);
+		//NeuralNetwork net = NeuralNetwork.loadFromDisk("XOR.net");
 		net.printWeights(System.out);
+		try {
+			net.writeToDisk("XOR.net");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		String response = "";
 		Scanner input = new Scanner(System.in);
 		while(!(response = input.nextLine()).equals("quit")){
@@ -48,8 +59,41 @@ public class NeuralNetwork implements java.io.Serializable{
 		input.close();
 	}
 	
+	public static NeuralNetwork loadFromDisk(String path){
+		try(DataInputStream in = new DataInputStream(new FileInputStream(path))){
+			int numLayers = in.readInt();
+			int[] layers = new int[numLayers];
+			int[] biasLayers = new int[numLayers];
+			for(int i = 0; i < numLayers; i++){
+				layers[i] = in.readInt();
+				biasLayers[i] = in.readInt();
+			}
+			NeuralNetwork network = new NeuralNetwork(layers, biasLayers);
+			for(int i = 0; i < numLayers; i++){
+				for(Neuron n:network.getLayers()[i].getNeurons()){
+					if(in.readInt() != n.dendrites.length) throw new IOException("Invalid dendrite length!");
+					for(Dendrite d:n.dendrites){
+						d.weight = in.readDouble();
+					}
+				}
+				for(Neuron n:network.getLayers()[i].getBiasNeurons()){
+					if(in.readInt() != n.dendrites.length) throw new IOException("Invalid dendrite length!");
+					for(Dendrite d:n.dendrites){
+						d.weight = in.readDouble();
+					}
+				}
+			}
+			return network;
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
 	protected NeuronLayer[] layers;
-	//private DataVisualizer dv = null;
+	private DataVisualizer dv = null;
 	private boolean trainedWithSoftMax = false;
 	
 	/**
@@ -73,9 +117,9 @@ public class NeuralNetwork implements java.io.Serializable{
 	 * @param scale Number to scale the values by on the window. (aesthetics only)
 	 * @param threshold Threshold to display on the window.
 	 */
-	public NeuralNetwork(int[] layers, int[] bias, String title, float scale, double threshold){
+	public NeuralNetwork(int[] layers, int[] bias, String title){
 		init(layers, bias, ActivationStrategy.fillArray(SigmoidActivationStrategy.class, layers.length));
-		//dv = new DataVisualizer(title,scale,threshold);
+		dv = new DataVisualizer(title);
 	}
 	
 	static class NeuralNetworkParams{ 
@@ -89,13 +133,13 @@ public class NeuralNetwork implements java.io.Serializable{
 		}
 		this.layers = new NeuronLayer[layers.length];
 		for(int i = 0; i < layers.length; i++){
-			this.layers[i] = new NeuronLayer(this,layers[i],bias[i], strategies[i]);
+			this.layers[i] = new NeuronLayer(layers[i],bias[i], strategies[i]);
 		}
 		randomWeights();
 	}
 	
 	/**
-	 * Instatiate neural network with neuron layers.
+	 * Instantiate neural network with neuron layers.
 	 * @param layers Neuron layers
 	 */
 	public NeuralNetwork(NeuronLayer[] layers){
@@ -151,13 +195,12 @@ public class NeuralNetwork implements java.io.Serializable{
 	 * @param classification use softmax?
 	 * @param batch size of batch to use for Stochastic Gradient Descent
 	 */
-	public void train(double[][] allInputs, double[][] allOutputs, double learningRate, double momentum, double errorThreshold, boolean classification, int batch){
+	public void train(final double[][] allInputs, final double[][] allOutputs, final double learningRate, final double momentum, final double errorThreshold, final boolean classification, int batch){
 		trainedWithSoftMax = classification;
 		int runs = 0;
 		double startError = 0;
 		stopButton();
-		double lastError = -1;
-		double runningError = 0;
+		Queue<Double> prevErrors = new LinkedList<>();
 		while(true){
 			Data data = getBatch(allInputs, allOutputs, batch);
 			double[][] inputs = data.input;
@@ -172,88 +215,51 @@ public class NeuralNetwork implements java.io.Serializable{
 				updateWeights(dendriteDeltaMap, learningRate, momentum);
 			}
 			double batchError = errorSum/inputs.length;
-			runningError += batchError;
+			prevErrors.add(batchError);
 			if(runs == 0) startError = batchError;
-			//if(dv != null)dv.addError((float)avgError);
-			if(runs % 25 == 0){
-				lastError = runningError/25d;
-				runningError = 0;
+			if(prevErrors.size() > 25){
+				prevErrors.remove();
 			}
-			System.out.println("Epoch: " + runs + ", error: " + batchError + ", avgError: " + lastError);
+			double error = -1;
+			if(prevErrors.size() == 25){
+				error = getAvgError(prevErrors);
+			}
+			if(dv != null)dv.addError(error, errorThreshold);
+			System.out.println("Epoch: " + runs + ", error: " + batchError + ", avgError: " + error);
 			runs++;
-			if(lastError <= errorThreshold && runs > 100 || stop) break;
+			if(error <= errorThreshold && runs > 100 || stop) break;
 		}
 		System.out.println("\nFinished!");
 		System.out.println("Start error: " + startError);
 	}
 	
-	/**
-	 * Train neural network with supplied parameters
-	 * @param inputs Inputs to train with
-	 * @param outputs Outputs corresponding to inputs
-	 * @param learningRate Learning rate
-	 * @param momentum Momentum
-	 * @param maxTime max number of milliseconds to train for
-	 */
-	public void trainForMilliseconds(double[][] inputs, double[][] outputs, double learningRate, double momentum, long maxTime){
-		trainForMilliSeconds(inputs, outputs, learningRate, momentum, maxTime, false);
+	private double getAvgError(Queue<Double> q){
+		double sum = 0;
+		for(double d:q){
+			sum += d;
+		}
+		return sum/q.size();
 	}
 	
 	boolean stop = false;
 	
-	/**
-	 * Train neural network with supplied parameters
-	 * @param inputs Inputs to train with
-	 * @param outputs Outputs corresponding to inputs
-	 * @param learningRate Learning rate
-	 * @param momentum Momentum
-	 * @param maxTime max number of milliseconds to train for
-	 * @param classification use softmax?
-	 */
-	public void trainForMilliSeconds(double[][] inputs, double[][] outputs, double learningRate, double momentum, long maxTime, boolean classification){
-		int runs = 0;
-		double startError = 0;
-		long startTime = System.currentTimeMillis();
-		boolean done = false;
-		stopButton();
-		while(!done){
-			HashMap<Dendrite,Double> dendriteDeltaMap = new HashMap<>();
-			double errorSum = 0;
-			for(int i = 0; i < inputs.length; i++){
-				double[] results = evaluate(inputs[i], classification);
-				double error = calculateAggregateError(results,outputs[i]); //calculate mean squared error
-				errorSum += error;
-				getErrors(results, outputs[i]);
-				updateWeights(dendriteDeltaMap, learningRate, momentum);
-			}
-			double avgError = errorSum/inputs.length;
-			if(runs == 0) startError = avgError;
-			//if(dv != null)dv.addError((float)avgError);
-			System.out.println("Epoch: " + runs + ", error: " + avgError);
-			runs++;
-			done = Math.abs(System.currentTimeMillis() - startTime) >= maxTime || avgError <= Math.pow(0.03, 2)/2 || stop;
-		}
-		System.out.println("\nFinished after running for " + Math.abs(System.currentTimeMillis() - startTime)/1000 + " seconds!");
-		System.out.println("Start error: " + startError);
-		//printWeights();
-	}
-	
 	private void stopButton(){
 		JFrame frame = new JFrame();
 		JButton button = new JButton("Stop");
-		JButton weights = new JButton("Print weights");
+		JButton save = new JButton("Save network");
 		button.addActionListener(e -> {
 			stop = true;
 		});
-		weights.addActionListener(e -> {
+		save.addActionListener(e -> {
 			try {
-				PrintStream out = new PrintStream(new FileOutputStream("weights.log"));
-				printWeights(out);
-			} catch (FileNotFoundException e1) {
+				writeToDisk("results/recognizer" + Calendar.getInstance().toString() + ".net");
+			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
 		});
-		frame.getContentPane().add(button);
+		frame.setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
+		frame.add(button);
+		frame.add(save);
 		frame.pack();
 		frame.setVisible(true);
 	}
@@ -262,12 +268,12 @@ public class NeuralNetwork implements java.io.Serializable{
 	 * Write neural network to disk. NOT WORKING
 	 * @param path path to write to.
 	 */
-	public void writeToDisk(String path){
+	public void writeToDisk(String path) throws IOException {
 		try(DataOutputStream out = new DataOutputStream(new FileOutputStream(new File(path)))) {
 			out.writeInt(layers.length);
-			for(NeuronLayer layer:layers){
-				out.writeInt(layer.getNeurons().length);
-				out.writeInt(layer.getBiasNeurons().length);
+			for(NeuronLayer nl:layers){
+				out.writeInt(nl.getNeurons().length);
+				out.writeInt(nl.getBiasNeurons().length);
 			}
 			for(NeuronLayer nl:layers){
 				for(Neuron n:nl.getNeurons()){
@@ -285,6 +291,7 @@ public class NeuralNetwork implements java.io.Serializable{
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
+			throw e;
 		}
 	}
 	
@@ -419,7 +426,6 @@ public class NeuralNetwork implements java.io.Serializable{
 					double delta = learningRate * neuron.getError() * dendrite.getStart().getOutput();
 					if(dendriteDeltaMap.get(dendrite) != null){
 						delta += momentum * dendriteDeltaMap.get(dendrite);
-						//System.out.println("momentum!");
 					}
 					dendriteDeltaMap.put(dendrite, -delta);
 					dendrite.adjustWeight(-delta);

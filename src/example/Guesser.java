@@ -2,13 +2,57 @@ package example;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Random;
 
 import com.coolioasjulio.neuralnetwork.NeuralNetwork;
 import com.coolioasjulio.neuralnetwork.utils.ImageUtils;
 
 public class Guesser {
+	
+	public static void main(String[] args){
+		try{
+			BufferedImage[] images = ImageUtils.getImages("data/t10k-images.idx3-ubyte");
+			double[][] output = ImageUtils.getLabels("data/t10k-labels.idx1-ubyte");
+			int correct = 0;
+			NeuralNetwork net = NeuralNetwork.loadFromDisk("results/recognizer1494907831132.net");
+			System.out.println("Starting");
+			HashMap<Integer,Integer> record = new HashMap<>();
+			for(int i = 0; i < images.length; i++){
+				double[] guess = net.guess(ImageUtils.getDataFromBufferedImage(images[i]));
+				double[] label = output[i];
+				int correctIndex = maxIndex(label);
+				if(maxIndex(guess) == correctIndex){
+					correct++;
+					System.out.println("Correctly identified " + correctIndex);
+				}
+				else{
+					record.putIfAbsent(correctIndex, 0);
+					record.put(correctIndex,record.get(correctIndex)+1);
+					System.out.println("Incorrectly identified " + correctIndex);
+				}
+			}
+			System.out.println("Got " + correct + " out of " + images.length);
+			System.out.println(100d*(double)correct/(double)images.length + "%");
+			System.out.println(record.toString());
+		} catch(IOException e){
+			e.printStackTrace();
+		}
+	}
+	
+	private static int maxIndex(double[] arr){
+		int maxIndex = 0;
+		double max = arr[0];
+		for(int i = 0; i < arr.length; i++){
+			if(arr[i] > max){
+				max = arr[i];
+				maxIndex = i;
+			}
+		}
+		return maxIndex;
+	}
 	
 	public static void guessRandom(NeuralNetwork network){
 		try{
@@ -50,6 +94,10 @@ public class Guesser {
 	}
 	
 	public static void guessAll(NeuralNetwork network, BufferedImage[] images, double[][] output){
+		guessAll(network, images, output, System.out);
+	}
+	
+	public static void guessAll(NeuralNetwork network, BufferedImage[] images, double[][] output, PrintStream out){
 		DataPoint[] data = new DataPoint[10];
 		for(int i = 0; i < images.length; i++){
 			int index = indexOf(output[i],1);
@@ -63,9 +111,9 @@ public class Guesser {
 		}
 		for(int i = 0; i < data.length; i++){
 			DataPoint dp = data[i];
-			System.out.println("========================\nTesting: " + i);
-			System.out.println(Arrays.toString(network.guess(ImageUtils.getDataFromBufferedImage(dp.input),true)));
-			System.out.println(Arrays.toString(dp.output));				
+			out.println("========================\nTesting: " + i);
+			out.println(Arrays.toString(network.guess(ImageUtils.getDataFromBufferedImage(dp.input),true)));
+			out.println(Arrays.toString(dp.output));
 		}		
 	}
 	

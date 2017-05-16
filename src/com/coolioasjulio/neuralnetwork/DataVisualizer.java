@@ -1,101 +1,88 @@
 package com.coolioasjulio.neuralnetwork;
 
+import java.awt.Color;
+import java.awt.Graphics;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.List;
 
-import org.newdawn.slick.AppGameContainer;
-import org.newdawn.slick.BasicGame;
-import org.newdawn.slick.Color;
-import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Graphics;
-import org.newdawn.slick.SlickException;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 
 public class DataVisualizer {
 	
 	public static int X_PADDING = 50;
 	public static int Y_PADDING = 50;
 	
-	private Visualizer v;
+	private Window w;
 	
-	public DataVisualizer(){
+	public DataVisualizer(String title){
+		init(title, 1080, 756);
+	}
+	
+	public DataVisualizer(String title, int width, int height){
+		init(title, width, height);
+	}
+	
+	private void init(String title, int width, int height){
 		new Thread(() -> {
-			try{
-				v = new Visualizer("Neural Network");
-				AppGameContainer appgc = new AppGameContainer(v);
-				appgc.setDisplayMode(1024, 756, false);
-				appgc.setShowFPS(false);
-				appgc.setTargetFrameRate(100);
-				appgc.start();
-				System.err.println("started!");
-			}
-			catch(SlickException e){
-				e.printStackTrace();
-			}
+			JFrame frame = new JFrame(title);
+			frame.setSize(width, height);
+			frame.setResizable(false);
+			w = new Window(width, height);
+			frame.add(w);
+			frame.setVisible(true);
 		}).start();
 	}
 	
-	public DataVisualizer(String title, float scale, double threshold){
-		new Thread(() -> {
-			try{
-				v = new Visualizer(title,scale,threshold);
-				AppGameContainer appgc = new AppGameContainer(v);
-				appgc.setDisplayMode(1024, 756, false);
-				appgc.start();
-				System.err.println("started!");
-			}
-			catch(SlickException e){
-				e.printStackTrace();
-			}
-		}).start();
+	public void addError(double error, double threshold){
+		w.addError(error, threshold);
 	}
 	
-	public void addError(float error){
-		if(v==null)return;
-		v.addData(error);
-	}
-	
-	public class Visualizer extends BasicGame {
-		private ArrayList<Float> errors;
-		private float scale;
-		private double threshold;
-		public Visualizer(String title) {
-			super(title);
-			errors = new ArrayList<Float>();
-			scale = 4500;
-			threshold = 0.03;
+	class Window extends JPanel{
+		private static final long serialVersionUID = 1L;
+		
+		private List<Double> errors;
+		private double scale, max, threshold;
+		
+		public Window(int width, int height){
+			errors = new ArrayList<>();
+			scale = 1;
+			max = 0;
+			this.setSize(width, height);
 		}
 		
-		public Visualizer(String title, float scale, double threshold){
-			super(title);
-			errors = new ArrayList<Float>();
-			this.scale = scale;
+		public synchronized void addError(double error, double threshold){
+			errors.add(error);
 			this.threshold = threshold;
 		}
-
-		public void addData(float data){
-			Collections.synchronizedList(errors).add(data*scale);
-		}
 		
 		@Override
-		public void render(GameContainer gc, Graphics g) throws SlickException {
-			int skip = Collections.synchronizedList(errors).size()/(gc.getWidth()-X_PADDING*2);
-			if(skip < 1) skip = 1;
-			int x = 0;
-			for(int i = 0; i < Collections.synchronizedList(errors).size(); i += skip){
-				g.setColor(Color.white);
-				g.drawLine(X_PADDING + x, gc.getHeight()-Y_PADDING, X_PADDING + x, gc.getHeight() - (Y_PADDING + Collections.synchronizedList(errors).get(i)));
-				g.setColor(Color.red);
-				g.drawLine(0, gc.getHeight()-(float)(threshold*scale)-Y_PADDING, gc.getWidth(), gc.getHeight()-(float)(threshold*scale) - Y_PADDING);
+		public void paintComponent(Graphics g){
+			super.paintComponent(g);
+			g.clearRect(0, 0, getWidth(), getHeight());
+			g.setColor(Color.black);
+			
+			if(errors.size() == 0) return;
+			if(max == -1) max = errors.get(0);
+			int change = Math.max(errors.size()/(this.getWidth() - 2*X_PADDING),1);
+			int x = X_PADDING;
+			for(int i = 0; i < errors.size(); i += change){
+				if(errors.get(i) > max) max = errors.get(i);
+				scale = (this.getHeight() - 2*Y_PADDING) / max;
+				g.drawLine(x, this.getHeight() - Y_PADDING, x, (this.getHeight() - Y_PADDING) - round(scale * errors.get(i)));
 				x++;
 			}
+			
+			g.setColor(Color.RED);
+			g.drawLine(0, (this.getHeight()-Y_PADDING)-round(threshold * scale), this.getWidth(), (this.getHeight()-Y_PADDING)-round(threshold * scale));
+			this.repaint();
 		}
 		
-		@Override
-		public void init(GameContainer gc) throws SlickException {
-		}
-		
-		@Override
-		public void update(GameContainer gc, int arg1) throws SlickException {
+		private int round(double d){
+			if(d % 1 >= 0.5){
+				return (int)d+1;
+			}
+			return (int)d;
 		}
 	}
 }

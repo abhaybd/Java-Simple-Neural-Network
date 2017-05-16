@@ -29,9 +29,10 @@ public class DigitRecognizer {
 		System.out.println(Arrays.toString(outputs[0]));
 		int size = inputs[0].length;
 		network = new NeuralNetwork(new int[]{size, 1000, 10}, new int[]{1,1,0}); //(size+10)*2/3
-		network.train(inputs, outputs, 0.1, 0.9, 0.01, false, 10);
-		
+		network.train(inputs, outputs, 0.1, 0.9, 0.02, false, 10);
+		//network = NeuralNetwork.loadFromDisk("recognizer.net");
 		Guesser.guessAll(network);
+		network.writeToDisk("recognizer.net");
 		PrintStream out = new PrintStream(new FileOutputStream("weights.log"));
 		network.printWeights(out);
 		out.close();

@@ -1,6 +1,6 @@
 package com.coolioasjulio.neuralnetwork;
 
-import java.util.Arrays;
+import java.util.Objects;
 
 import com.coolioasjulio.neuralnetwork.activationstrategy.ActivationStrategy;
 
@@ -8,11 +8,7 @@ public class NeuronLayer implements java.io.Serializable{
 	private static final long serialVersionUID = 1L;
 	private Neuron[] neurons;
 	private Neuron[] bias;
-	private NeuralNetwork network;
-	private boolean isInput;
-	private boolean isOutput;
-	public NeuronLayer(NeuralNetwork network, int neurons, int biasNeurons, ActivationStrategy strategy){
-		this.network = network;
+	public NeuronLayer(int neurons, int biasNeurons, ActivationStrategy strategy){
 		this.neurons = new Neuron[neurons];
 		for(int i = 0; i < neurons; i++){
 			this.neurons[i] = new Neuron(this, strategy);
@@ -21,11 +17,6 @@ public class NeuronLayer implements java.io.Serializable{
 		for(int i = 0; i < biasNeurons; i++){
 			bias[i] = new Neuron(this, strategy);
 			bias[i].output = 1;
-		}
-		if(network != null){
-			int index = Arrays.asList(network.getLayers()).indexOf(this);
-			isInput = index == 0;
-			isOutput = index == network.getLayers().length - 1;			
 		}
 	}
 	
@@ -39,18 +30,6 @@ public class NeuronLayer implements java.io.Serializable{
 			toReturn[i] = Math.pow(Math.E, neurons[i].getWeightedSum())/sum;
 		}
 		return toReturn;
-	}
-	
-	public boolean isInput(){
-		return isInput;
-	}
-	
-	public boolean isOutput(){
-		return isOutput;
-	}
-	
-	public NeuralNetwork getNetwork(){
-		return network;
 	}
 	
 	public void setRandomWeights(NeuronLayer next){		
@@ -74,10 +53,15 @@ public class NeuronLayer implements java.io.Serializable{
 	public boolean equals(Object o){
 		if(!(o instanceof NeuronLayer)) return false;
 		NeuronLayer other = (NeuronLayer)o;
-		if(neurons.length != other.getNeurons().length || isInput != other.isInput() || isOutput != other.isOutput()) return false;
+		if(neurons.length != other.getNeurons().length || bias.length != other.getBiasNeurons().length) return false;
 		for(int i = 0; i < neurons.length; i++){
 			if(!neurons[i].equals(other.getNeurons()[i])) return false;
 		}
 		return true;
+	}
+	
+	@Override
+	public int hashCode(){
+		return Objects.hash(neurons, bias);
 	}
 }

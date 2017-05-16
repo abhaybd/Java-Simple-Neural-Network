@@ -2,6 +2,7 @@ package com.coolioasjulio.neuralnetwork;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 import com.coolioasjulio.neuralnetwork.activationstrategy.ActivationStrategy;
@@ -84,5 +85,10 @@ public class Neuron implements java.io.Serializable{
 		if(!(o instanceof Neuron)) return false;
 		Neuron other = (Neuron)o;
 		return error == other.getError() && output == other.getOutput() && weightedSum == other.weightedSum;
+	}
+	
+	@Override
+	public int hashCode(){
+		return Objects.hash(error, output, weightedSum, getDendrites());
 	}
 }
