@@ -17,7 +17,7 @@ public class Guesser {
 			BufferedImage[] images = ImageUtils.getImages("data/t10k-images.idx3-ubyte");
 			double[][] output = ImageUtils.getLabels("data/t10k-labels.idx1-ubyte");
 			int correct = 0;
-			NeuralNetwork net = NeuralNetwork.loadFromDisk("results/recognizer1494907831132.net");
+			NeuralNetwork net = NeuralNetwork.loadFromDisk("recognizer.net");
 			System.out.println("Starting");
 			HashMap<Integer,Integer> record = new HashMap<>();
 			for(int i = 0; i < images.length; i++){
@@ -26,12 +26,10 @@ public class Guesser {
 				int correctIndex = maxIndex(label);
 				if(maxIndex(guess) == correctIndex){
 					correct++;
-					System.out.println("Correctly identified " + correctIndex);
 				}
 				else{
 					record.putIfAbsent(correctIndex, 0);
 					record.put(correctIndex,record.get(correctIndex)+1);
-					System.out.println("Incorrectly identified " + correctIndex);
 				}
 			}
 			System.out.println("Got " + correct + " out of " + images.length);
@@ -67,22 +65,6 @@ public class Guesser {
 		}
 	}
 	
-	private static int indexOf(double[] arr, double search){
-		for(int i = 0; i < arr.length; i++){
-			if(arr[i] == search) return i;
-		}
-		return -1;
-	}
-	
-	private static <T> boolean containsNull(T[] arr){
-		for(int i = 0; i < arr.length; i++){
-			if(arr[i] == null){
-				return true;
-			}
-		}
-		return false;
-	}
-	
 	public static void guessAll(NeuralNetwork network){
 		try{
 			BufferedImage[] images = ImageUtils.getImages("data/t10k-images.idx3-ubyte");
@@ -98,40 +80,43 @@ public class Guesser {
 	}
 	
 	public static void guessAll(NeuralNetwork network, BufferedImage[] images, double[][] output, PrintStream out){
-		DataPoint[] data = new DataPoint[10];
+		int correct = 0;
+		System.out.println("Starting");
+		HashMap<Integer,Integer> record = new HashMap<>();
 		for(int i = 0; i < images.length; i++){
-			int index = indexOf(output[i],1);
-			if(data[index] == null){
-				DataPoint dp = new DataPoint();
-				dp.input = images[i];
-				dp.output = output[i];
-				data[index] = dp;
+			double[] guess = network.guess(ImageUtils.getDataFromBufferedImage(images[i]));
+			double[] label = output[i];
+			int correctIndex = maxIndex(label);
+			if(maxIndex(guess) == correctIndex){
+				correct++;
 			}
-			if(!containsNull(data)) break;
+			else{
+				record.putIfAbsent(correctIndex, 0);
+				record.put(correctIndex,record.get(correctIndex)+1);
+			}
 		}
-		for(int i = 0; i < data.length; i++){
-			DataPoint dp = data[i];
-			out.println("========================\nTesting: " + i);
-			out.println(Arrays.toString(network.guess(ImageUtils.getDataFromBufferedImage(dp.input),true)));
-			out.println(Arrays.toString(dp.output));
-		}		
+		System.out.println("Got " + correct + " out of " + images.length);
+		System.out.println(100d*(double)correct/(double)images.length + "%");
+		System.out.println(record.toString());	
 	}
 	
-	static class DataPoint{
-		public BufferedImage input;
-		public double[] output;
-	}
-	
-	public static void guessSpecific(NeuralNetwork network, int toGuess){
+	public static void guessAllSpecific(NeuralNetwork network, int toGuess){
 		try{
 			BufferedImage[] images = ImageUtils.getImages("data/t10k-images.idx3-ubyte");
 			double[][] output = ImageUtils.getLabels("data/t10k-labels.idx1-ubyte");
-			int i = 0;
-			while(Integer.parseInt(Arrays.toString(output[i]).replaceAll("\\D|(\\.\\d)", ""),2) != toGuess){
-				i++;
+			int correct = 0;
+			System.out.println("Starting");
+			for(int i = 0; i < images.length; i++){
+				if(Integer.parseInt(Arrays.toString(output[i]).replaceAll("\\D|(\\.\\d)", ""),2) == toGuess){
+					double[] guess = network.guess(ImageUtils.getDataFromBufferedImage(images[i]));
+					if(maxIndex(guess) == maxIndex(output[i])){
+						correct++;
+					}
+				}
 			}
-			System.out.println(Arrays.toString(network.guess(ImageUtils.getDataFromBufferedImage(images[i]))));
-			System.out.println(output[i][0]);
+			System.out.println("Got " + correct + " out of " + images.length);
+			System.out.println(100.0 * (double)correct/(double)images.length + "%");
+			
 		} catch(IOException e){
 			e.printStackTrace();
 		}

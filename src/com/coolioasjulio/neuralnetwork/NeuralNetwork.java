@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -139,6 +140,7 @@ public class NeuralNetwork implements java.io.Serializable{
 		for(int i = 0; i < layers.length; i++){
 			this.layers[i] = new NeuronLayer(layers[i],bias[i], strategies[i]);
 		}
+		new File("results").mkdir();
 		randomWeights();
 	}
 	
@@ -175,6 +177,10 @@ public class NeuralNetwork implements java.io.Serializable{
 	 */
 	public double[] guess(double[] input, boolean softMax){
 		return evaluate(input, softMax);
+	}
+	
+	public void activateVisualizer(String title){
+		if(dv == null) dv = new DataVisualizer(title);
 	}
 	
 	/**
@@ -221,13 +227,11 @@ public class NeuralNetwork implements java.io.Serializable{
 			double batchError = errorSum/inputs.length;
 			prevErrors.add(batchError);
 			if(runs == 0) startError = batchError;
-			if(prevErrors.size() > 25){
+			while(prevErrors.size() > 25){
 				prevErrors.remove();
 			}
 			double error = -1;
-			if(prevErrors.size() == 25){
-				error = getAvgError(prevErrors);
-			}
+			error = getAvgError(prevErrors);
 			if(dv != null)dv.addError(error, errorThreshold);
 			System.out.println("Epoch: " + runs + ", error: " + batchError + ", avgError: " + error);
 			runs++;
@@ -256,7 +260,7 @@ public class NeuralNetwork implements java.io.Serializable{
 		});
 		save.addActionListener(e -> {
 			try {
-				writeToDisk("results/recognizer" + Calendar.getInstance().toString() + ".net");
+				writeToDisk("results/recognizer" + getCalendarAsString(Calendar.getInstance()) + ".net");
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
@@ -266,6 +270,11 @@ public class NeuralNetwork implements java.io.Serializable{
 		frame.add(save);
 		frame.pack();
 		frame.setVisible(true);
+	}
+	
+	private String getCalendarAsString(Calendar c){
+		SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy");
+		return sdf.format(c.getTime());
 	}
 	
 	/**
