@@ -7,7 +7,9 @@ import java.awt.Rectangle;
 import java.awt.geom.Area;
 import java.awt.image.BufferedImage;
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
@@ -18,7 +20,7 @@ import javax.swing.JLabel;
 @SuppressWarnings("unused")
 public class ImageUtils {
 	public static void main(String[] args) throws IOException{
-		BufferedImage[] images = getImages("data/t10k-images.idx3-ubyte");
+		BufferedImage[] images = readImages("data/t10k-images.idx3-ubyte");
 		BufferedImage image = new BufferedImage(28, 28, BufferedImage.TYPE_INT_ARGB);
 		double[] data = getDataFromBufferedImage(images[0]);
 		int index = 0;
@@ -40,7 +42,7 @@ public class ImageUtils {
 	 * @return double[][] of the labels
 	 * @throws IOException
 	 */
-	public static double[][] getLabels(String path) throws IOException{
+	public static double[][] readLabels(String path) throws IOException{
 		try(DataInputStream in = new DataInputStream(new FileInputStream(path))){
 			in.readInt();
 			int numLabels = in.readInt();
@@ -63,7 +65,7 @@ public class ImageUtils {
 	 * @return BufferedImage[] of all the images
 	 * @throws IOException
 	 */
-	public static BufferedImage[] getImages(String path) throws IOException{
+	public static BufferedImage[] readImages(String path) throws IOException{
 		try(DataInputStream in = new DataInputStream(new FileInputStream(path))){
 			in.readInt();
 			int numImages = in.readInt();
@@ -88,6 +90,47 @@ public class ImageUtils {
 		} catch (IOException e) {
 			throw e;
 		}
+	}
+	
+	/**
+	 * Create a idx1-ubyte file with the supplied int[] as the labels for corresponding images.
+	 * @param path Path of ubyte file
+	 * @param labels int[] of labels to write
+	 * @throws IOException
+	 */
+	public static void writeLabelUbyte(String path, int[] labels) throws IOException{
+		DataOutputStream out = new DataOutputStream(new FileOutputStream(path));
+		out.writeInt(2049);
+		out.writeInt(labels.length);
+		for(int label:labels){
+			out.write(label);
+		}
+		out.close();
+	}
+	
+	/**
+	 * Creates a idx3-ubyte file with the supplied BufferedImage[] as the images for corresponding labels.
+	 * @param path Path of ubyte file
+	 * @param images BufferedImage[] of images to write
+	 * @throws IOException
+	 */
+	public static void writeImageUbyte(String path, BufferedImage[] images) throws IOException{
+		DataOutputStream out = new DataOutputStream(new FileOutputStream(path));
+		out.writeInt(2051);
+		out.writeInt(images.length);
+		out.writeInt(images[0].getWidth());
+		out.writeInt(images[0].getHeight());
+		
+		for(BufferedImage img:images){
+			for(int y = 0; y < img.getHeight(); y++){
+				for(int x = 0; x< img.getWidth(); x++){
+					Color c = new Color(img.getRGB(x, y));
+					int val = (c.getRed() + c.getBlue() + c.getGreen()) / 3;
+					out.write(val);
+				}
+			}
+		}
+		out.close();
 	}
 	
 	/**
@@ -159,67 +202,22 @@ public class ImageUtils {
 		return otsu(toReturn);
 	}
 	
-	private static double[] normalize(double[] original){
-		double[] normalized = new double[original.length];
-		for(int i = 0; i < original.length; i++){
-			double rgb = original[i];
-			normalized[i] = rgb/255;
-		}
-		System.out.println(Arrays.toString(normalized));
-		return normalized;
-	}
-	
-	private static double[] otsu(double[] original){
-		double[] data = original.clone();
-		int[] histogram = new int[256];
-        for(double datum : data) {
-            histogram[(int) datum]++;
-        }
-
-        double sum = 0;
-        for(int i = 0; i < histogram.length; i++) {
-            sum += i * histogram[i];
-        }
-
-        double sumB = 0;
-        int wB = 0;
-        int wF = 0;
-        double maxVariance = 0;
-        int threshold = 0;
-        int i = 0;
-        boolean found = false;
-
-        while(i < histogram.length && !found) {
-            wB += histogram[i];
-            if(wB != 0) {
-                wF = data.length - wB;
-                if(wF != 0) {
-                    sumB += (i * histogram[i]);
-                    double mB = sumB / wB;
-                    double mF = (sum - sumB) / wF;
-                    double varianceBetween = wB * Math.pow((mB - mF), 2);
-
-                    if(varianceBetween > maxVariance) {
-                        maxVariance = varianceBetween;
-                        threshold = i;
-                    }
-                }
-                else {
-                    found = true;
-                }
-            }
-            i++;
-        }
-        
-        for(i = 0; i < data.length; i++) {
-            data[i] = data[i] <= threshold ? 0 : 1;
-        }
-        
-        return data;
-	}
-	
-	private static double grayScale(Color color){
+	/**
+	 * Returns the average of the rgb channels of the supplied color
+	 * @param color to turn into grayscale
+	 * @return grayscale of color. (Average of rgb)
+	 */
+	public static double grayScale(Color color){
 		return (color.getRed() + color.getBlue() + color.getGreen()) / 3;
+	}
+	
+	/**
+	 * Same as com.coolioasjulio.neuralnetwork.utils.ImageUtils.grayScale(new Color(rgb));
+	 * @param rgb Rgb as int to supply to Color constructor
+	 * @return grayscale of color
+	 */
+	public static double grayScale(int rgb){
+		return grayScale(new Color(rgb));
 	}
 	
 	/**
@@ -246,5 +244,64 @@ public class ImageUtils {
 		toReturn[3] = rect.getHeight()/(double)img.getHeight();
 		toReturn[4] = numPixels/(double)(img.getHeight()*img.getWidth());
 		return toReturn;
+	}
+
+	private static double[] otsu(double[] original){
+		double[] data = original.clone();
+		int[] histogram = new int[256];
+	    for(double datum : data) {
+	        histogram[(int) datum]++;
+	    }
+	
+	    double sum = 0;
+	    for(int i = 0; i < histogram.length; i++) {
+	        sum += i * histogram[i];
+	    }
+	
+	    double sumB = 0;
+	    int wB = 0;
+	    int wF = 0;
+	    double maxVariance = 0;
+	    int threshold = 0;
+	    int i = 0;
+	    boolean found = false;
+	
+	    while(i < histogram.length && !found) {
+	        wB += histogram[i];
+	        if(wB != 0) {
+	            wF = data.length - wB;
+	            if(wF != 0) {
+	                sumB += (i * histogram[i]);
+	                double mB = sumB / wB;
+	                double mF = (sum - sumB) / wF;
+	                double varianceBetween = wB * Math.pow((mB - mF), 2);
+	
+	                if(varianceBetween > maxVariance) {
+	                    maxVariance = varianceBetween;
+	                    threshold = i;
+	                }
+	            }
+	            else {
+	                found = true;
+	            }
+	        }
+	        i++;
+	    }
+	    
+	    for(i = 0; i < data.length; i++) {
+	        data[i] = data[i] <= threshold ? 0 : 1;
+	    }
+	    
+	    return data;
+	}
+
+	private static double[] normalize(double[] original){
+		double[] normalized = new double[original.length];
+		for(int i = 0; i < original.length; i++){
+			double rgb = original[i];
+			normalized[i] = rgb/255;
+		}
+		System.out.println(Arrays.toString(normalized));
+		return normalized;
 	}
 }

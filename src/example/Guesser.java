@@ -14,8 +14,8 @@ public class Guesser {
 	
 	public static void main(String[] args){
 		try{
-			BufferedImage[] images = ImageUtils.getImages("data/t10k-images.idx3-ubyte");
-			double[][] output = ImageUtils.getLabels("data/t10k-labels.idx1-ubyte");
+			BufferedImage[] images = ImageUtils.readImages("data/t10k-images.idx3-ubyte");
+			double[][] output = ImageUtils.readLabels("data/t10k-labels.idx1-ubyte");
 			int correct = 0;
 			NeuralNetwork net = NeuralNetwork.loadFromDisk("recognizer.net");
 			System.out.println("Starting");
@@ -54,8 +54,8 @@ public class Guesser {
 	
 	public static void guessRandom(NeuralNetwork network){
 		try{
-			BufferedImage[] images = ImageUtils.getImages("data/train-images.idx3-ubyte");
-			double[][] output = ImageUtils.getLabels("data/train-labels.idx1-ubyte");
+			BufferedImage[] images = ImageUtils.readImages("data/train-images.idx3-ubyte");
+			double[][] output = ImageUtils.readLabels("data/train-labels.idx1-ubyte");
 			int index = new Random().nextInt(images.length);
 			System.out.println(Arrays.toString(network.guess(ImageUtils.getCondensedData(images[index]),network.isClassification())));
 			System.out.println(Arrays.toString(output[index]));
@@ -67,8 +67,8 @@ public class Guesser {
 	
 	public static void guessAll(NeuralNetwork network){
 		try{
-			BufferedImage[] images = ImageUtils.getImages("data/t10k-images.idx3-ubyte");
-			double[][] output = ImageUtils.getLabels("data/t10k-labels.idx1-ubyte");
+			BufferedImage[] images = ImageUtils.readImages("data/t10k-images.idx3-ubyte");
+			double[][] output = ImageUtils.readLabels("data/t10k-labels.idx1-ubyte");
 			guessAll(network,images,output);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -102,8 +102,8 @@ public class Guesser {
 	
 	public static void guessAllSpecific(NeuralNetwork network, int toGuess){
 		try{
-			BufferedImage[] images = ImageUtils.getImages("data/t10k-images.idx3-ubyte");
-			double[][] output = ImageUtils.getLabels("data/t10k-labels.idx1-ubyte");
+			BufferedImage[] images = ImageUtils.readImages("data/t10k-images.idx3-ubyte");
+			double[][] output = ImageUtils.readLabels("data/t10k-labels.idx1-ubyte");
 			int correct = 0;
 			System.out.println("Starting");
 			for(int i = 0; i < images.length; i++){

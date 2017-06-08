@@ -15,7 +15,7 @@ public class SixRecognizer {
 		new SixRecognizer("data/train-labels.idx1-ubyte","data/train-images.idx3-ubyte");
 	}
 	public SixRecognizer(String labelPath, String imagePath) throws IOException{
-		BufferedImage[] images = ImageUtils.getImages(imagePath);
+		BufferedImage[] images = ImageUtils.readImages(imagePath);
 		//ImageUtils.showImage(images[2]);
 		double[][] outputs = getSixLabels(labelPath);
 		for(double[] arr:outputs){
@@ -36,7 +36,7 @@ public class SixRecognizer {
 	
 	private void guess(NeuralNetwork network){
 		try{
-			BufferedImage[] images = ImageUtils.getImages("data/t10k-images.idx3-ubyte");
+			BufferedImage[] images = ImageUtils.readImages("data/t10k-images.idx3-ubyte");
 			double[][] output = getSixLabels("data/t10k-labels.idx1-ubyte");
 			int index = 0;
 			int val = 0;

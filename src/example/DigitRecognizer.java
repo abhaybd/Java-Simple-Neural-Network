@@ -18,8 +18,8 @@ public class DigitRecognizer {
 	
 	private NeuralNetwork network;
 	public DigitRecognizer(String labelPath, String imagePath) throws IOException{
-		BufferedImage[] images = ImageUtils.getImages(imagePath);
-		double[][] outputs = ImageUtils.getLabels(labelPath);
+		BufferedImage[] images = ImageUtils.readImages(imagePath);
+		double[][] outputs = ImageUtils.readLabels(labelPath);
 		double[][] inputs = new double[images.length][];
 		for(int i = 0; i < images.length; i++){
 			inputs[i] = ImageUtils.getDataFromBufferedImage(images[i]);

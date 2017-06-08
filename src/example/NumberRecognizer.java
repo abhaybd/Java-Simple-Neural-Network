@@ -16,7 +16,7 @@ public class NumberRecognizer {
 	}
 	
 	public NumberRecognizer(int number, String labelPath, String imagePath) throws IOException{
-		BufferedImage[] images = ImageUtils.getImages(imagePath);
+		BufferedImage[] images = ImageUtils.readImages(imagePath);
 		double[][] outputs = getLabels(labelPath, number);
 		double[][] inputs = new double[images.length][];
 		for(int i = 0; i < images.length; i++){
@@ -30,7 +30,7 @@ public class NumberRecognizer {
 	
 	private void guess(NeuralNetwork network, int number){
 		try{
-			BufferedImage[] images = ImageUtils.getImages("data/t10k-images.idx3-ubyte");
+			BufferedImage[] images = ImageUtils.readImages("data/t10k-images.idx3-ubyte");
 			double[][] output = getLabels("data/t10k-labels.idx1-ubyte", number);
 			int index = 0;
 			int val = 0;
