@@ -42,15 +42,14 @@ public class ImageUtils {
 	 * @return double[][] of the labels
 	 * @throws IOException
 	 */
-	public static double[][] readLabels(String path) throws IOException{
+	public static double[][] readLabels(String path, int size) throws IOException{
 		try(DataInputStream in = new DataInputStream(new FileInputStream(path))){
 			in.readInt();
 			int numLabels = in.readInt();
-			//numLabels = 100;
-			double[][] labels = new double[numLabels][10];
+			double[][] labels = new double[numLabels][size];
 			for(int i = 0; i < labels.length; i++){
 				int val = in.read();
-				labels[i][val%10] = 1;
+				labels[i][val] = 1;
 			}
 			return labels;
 		}
@@ -69,7 +68,6 @@ public class ImageUtils {
 		try(DataInputStream in = new DataInputStream(new FileInputStream(path))){
 			in.readInt();
 			int numImages = in.readInt();
-			//numImages = 100;
 			int rows = in.readInt();
 			int cols = in.readInt();
 			

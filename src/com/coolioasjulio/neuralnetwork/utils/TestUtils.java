@@ -1,15 +1,14 @@
-package example;
+package com.coolioasjulio.neuralnetwork.utils;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Arrays;
 import java.util.HashMap;
 
 import com.coolioasjulio.neuralnetwork.NeuralNetwork;
 import com.coolioasjulio.neuralnetwork.utils.ImageUtils;
 
-public class Guesser {
+public class TestUtils {
 	
 	private static int maxIndex(double[] arr){
 		int maxIndex = 0;
@@ -23,10 +22,10 @@ public class Guesser {
 		return maxIndex;
 	}
 	
-	public static void guessAll(NeuralNetwork network, String imagePath, String labelPath){
+	public static void guessAll(NeuralNetwork network, String imagePath, String labelPath, int size){
 		try{
 			BufferedImage[] images = ImageUtils.readImages(imagePath);
-			double[][] output = ImageUtils.readLabels(labelPath, 10);
+			double[][] output = ImageUtils.readLabels(labelPath, size);
 			guessAll(network,images,output);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -39,7 +38,7 @@ public class Guesser {
 	
 	public static void guessAll(NeuralNetwork network, BufferedImage[] images, double[][] output, PrintStream out){
 		int correct = 0;
-		System.out.println("Starting");
+		out.println("Starting");
 		HashMap<Integer,Integer> record = new HashMap<>();
 		for(int i = 0; i < images.length; i++){
 			double[] guess = network.guess(ImageUtils.getDataFromBufferedImage(images[i]));
@@ -56,27 +55,5 @@ public class Guesser {
 		out.println("Got " + correct + " out of " + images.length);
 		out.println(100d*(double)correct/(double)images.length + "%");
 		out.println(record.toString());	
-	}
-	
-	public static void guessAllSpecific(NeuralNetwork network, int toGuess){
-		try{
-			BufferedImage[] images = ImageUtils.readImages("data/t10k-images.idx3-ubyte");
-			double[][] output = ImageUtils.readLabels("data/t10k-labels.idx1-ubyte", 10);
-			int correct = 0;
-			System.out.println("Starting");
-			for(int i = 0; i < images.length; i++){
-				if(Integer.parseInt(Arrays.toString(output[i]).replaceAll("\\D|(\\.\\d)", ""),2) == toGuess){
-					double[] guess = network.guess(ImageUtils.getDataFromBufferedImage(images[i]));
-					if(maxIndex(guess) == maxIndex(output[i])){
-						correct++;
-					}
-				}
-			}
-			System.out.println("Got " + correct + " out of " + images.length);
-			System.out.println(100.0 * (double)correct/(double)images.length + "%");
-			
-		} catch(IOException e){
-			e.printStackTrace();
-		}
 	}
 }

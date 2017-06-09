@@ -19,7 +19,7 @@ public class DigitRecognizer {
 	private NeuralNetwork network;
 	public DigitRecognizer(String labelPath, String imagePath) throws IOException{
 		BufferedImage[] images = ImageUtils.readImages(imagePath);
-		double[][] outputs = ImageUtils.readLabels(labelPath);
+		double[][] outputs = ImageUtils.readLabels(labelPath, 10);
 		double[][] inputs = new double[images.length][];
 		for(int i = 0; i < images.length; i++){
 			inputs[i] = ImageUtils.getDataFromBufferedImage(images[i]);
@@ -32,7 +32,7 @@ public class DigitRecognizer {
 		network.activateVisualizer("DigitRecognizer");
 		network.train(inputs, outputs, 0.1, 0.9, 0.02, false, 10);
 		//network = NeuralNetwork.loadFromDisk("recognizer.net");
-		Guesser.guessAll(network);
+		Guesser.guessAll(network, "data/t10k-images.idx3-ubyte", "data/t10k-labels.idx1-ubyte");
 		network.writeToDisk("recognizer.net");
 		PrintStream out = new PrintStream(new FileOutputStream("weights.log"));
 		network.printWeights(out);

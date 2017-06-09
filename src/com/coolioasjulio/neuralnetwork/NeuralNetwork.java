@@ -103,11 +103,13 @@ public class NeuralNetwork implements java.io.Serializable{
 	 * @param bias Structured similarly to above, but for bias neurons. Generally, only 1 bias is needed per layer, because the weights can change.
 	 */
 	public NeuralNetwork(int[] layers, int[] bias){
-		init(layers, bias, ActivationStrategy.fillArray(SigmoidActivationStrategy.class, layers.length), null);
+		NeuralNetworkParams params = new NeuralNetworkParams(layers);
+		params.bias = bias;
+		init(params);
 	}
 	
 	public NeuralNetwork(NeuralNetworkParams params){
-		init(params.layers, params.bias, params.strategies, params.title);
+		init(params);
 	}
 	
 	/**
@@ -119,27 +121,35 @@ public class NeuralNetwork implements java.io.Serializable{
 	 * @param threshold Threshold to display on the window.
 	 */
 	public NeuralNetwork(int[] layers, int[] bias, String title){
-		init(layers, bias, ActivationStrategy.fillArray(SigmoidActivationStrategy.class, layers.length), title);
+		NeuralNetworkParams params = new NeuralNetworkParams(layers);
+		params.bias = bias;
+		params.title = title;
+		init(params);
 	}
 	
 	public static class NeuralNetworkParams{
 		public NeuralNetworkParams(int[] layers){
 			this.layers = layers;
 		}
-		public int[] layers, bias;
+		public int[] bias;
+		private int[] layers;
 		public ActivationStrategy[] strategies;
 		public String title;
 	}
 	
-	private void init(int[] layers, int[] bias, ActivationStrategy[] strategies, String title){
-		if(title != null) dv = new DataVisualizer(title);
-		if(bias == null || bias.length != layers.length){
-			bias = new int[layers.length];
+	private void init(NeuralNetworkParams params){
+		if(params.title != null) dv = new DataVisualizer(params.title);
+		if(params.bias == null || params.bias.length != params.layers.length){
+			params.bias = new int[params.layers.length];
 		}
-		this.layers = new NeuronLayer[layers.length];
+		if(params.strategies == null){
+			params.strategies = ActivationStrategy.fillArray(SigmoidActivationStrategy.class, params.layers.length);
+		}
+		this.layers = new NeuronLayer[params.layers.length];
 		for(int i = 0; i < layers.length; i++){
-			this.layers[i] = new NeuronLayer(layers[i],bias[i], strategies[i]);
+			this.layers[i] = new NeuronLayer(params.layers[i],params.bias[i], params.strategies[i]);
 		}
+		
 		new File("results").mkdir();
 		randomWeights();
 	}
@@ -345,7 +355,7 @@ public class NeuralNetwork implements java.io.Serializable{
 		for(int i = 0; i < results.length; i++){
 			error += Math.pow(expectedResults[i] - results[i], 2);
 		}
-		return error/2;
+		return error/results.length;
 	}
 	
 	private double[] evaluate(double[] input){
