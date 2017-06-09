@@ -24,7 +24,7 @@ public class DigitRecognizer {
 		for(int i = 0; i < images.length; i++){
 			inputs[i] = ImageUtils.getDataFromBufferedImage(images[i]);
 		}
-		//ImageUtils.showImage(images[0]);
+		//ImageUtils.showImage(images[0],280,280);
 		System.out.println(Arrays.toString(inputs[0]));
 		System.out.println(Arrays.toString(outputs[0]));
 		//network = new NeuralNetwork(new int[]{inputs[0].length, 1000, 10}, new int[]{1,1,0}); //(size+10)*2/3

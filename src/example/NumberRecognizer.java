@@ -44,7 +44,7 @@ public class NumberRecognizer {
 					}
 				}
 			}
-			ImageUtils.showImage(images[index]);
+			ImageUtils.showImage(images[index], 280, 280);
 			System.out.println("Guessing: " + val);
 			System.out.println(Arrays.toString(network.guess(ImageUtils.getDataFromBufferedImage(images[index]))));
 			System.out.println();

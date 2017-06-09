@@ -32,8 +32,8 @@ public class ImageUtils {
 				index++;
 			}
 		}
-		showImage(images[0]);
-		showImage(image);
+		showImage(images[0], 280, 280);
+		showImage(image, 280, 280);
 	}
 	
 	/**
@@ -149,16 +149,29 @@ public class ImageUtils {
 	}
 	
 	/**
-	 * Instatiates a 280x280 JFrame with image in it
-	 * @param image image to display
+	 * Shows a JFrame with the same dimensions as the image supplied. This image will NOT be scaled at all.
+	 * @param image Image to show
+	 * @return Displayed JFrame
 	 */
-	public static void showImage(BufferedImage image){
+	public static JFrame showImage(BufferedImage image){
+		return showImage(image, image.getWidth(), image.getHeight());
+	}
+	
+	/**
+	 * Shows a JFrame with the supplied image scaled to the supplied width and height. The JFrame will be the same dimensions as the scaled image.
+	 * @param image Image to scale and display.
+	 * @param width Width to scale the image to.
+	 * @param height Height to scale the image to.
+	 * @return Displayed JFrame
+	 */
+	public static JFrame showImage(BufferedImage image, int width, int height){
 		JFrame frame = new JFrame();
-		frame.setSize(280, 280);
+		frame.setSize(width, height);
 		JLabel label = new JLabel();
-		label.setIcon(new ImageIcon(image.getScaledInstance(280, 280, BufferedImage.SCALE_FAST)));
+		label.setIcon(new ImageIcon(image.getScaledInstance(width, height, BufferedImage.SCALE_FAST)));
 		frame.getContentPane().add(label);
 		frame.setVisible(true);
+		return frame;
 	}
 	
 	/**
@@ -166,23 +179,18 @@ public class ImageUtils {
 	 * @param img Image to convert
 	 * @return BufferedImage of img
 	 */
-	public static BufferedImage toBufferedImage(Image img)
-	{
-	    if (img instanceof BufferedImage)
-	    {
+	public static BufferedImage toBufferedImage(Image img){
+	    if (img instanceof BufferedImage){
 	        return (BufferedImage) img;
 	    }
 
-	    // Create a buffered image with transparency
-	    BufferedImage bimage = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+	    BufferedImage buff = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
 
-	    // Draw the image on to the buffered image
-	    Graphics2D bGr = bimage.createGraphics();
+	    Graphics2D bGr = buff.createGraphics();
 	    bGr.drawImage(img, 0, 0, null);
 	    bGr.dispose();
 
-	    // Return the buffered image
-	    return bimage;
+	    return buff;
 	}
 	
 	/**
