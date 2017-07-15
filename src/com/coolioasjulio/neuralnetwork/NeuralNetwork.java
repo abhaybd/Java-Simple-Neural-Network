@@ -38,7 +38,8 @@ public class NeuralNetwork implements java.io.Serializable{
 		};
 		double[][] output = new double[][]{{1},{1},{0},{0}};
 		NeuralNetwork net = new NeuralNetwork(new int[]{inputs[0].length,2,1}, new int[]{1,1,0}, "XOR");
-		net.train(inputs, output, 0.1, 0.9, 0.0001);
+		TrainParams tp = new TrainParams(inputs, output, 0.2, 0.9, 0.0001);
+		net.train(tp);
 		//NeuralNetwork net = NeuralNetwork.loadFromDisk("XOR.net");
 		net.printWeights(System.out);
 		try {
@@ -127,27 +128,17 @@ public class NeuralNetwork implements java.io.Serializable{
 		init(params);
 	}
 	
-	public static class NeuralNetworkParams{
-		public NeuralNetworkParams(int[] layers){
-			this.layers = layers;
-		}
-		public int[] bias;
-		private int[] layers;
-		public ActivationStrategy[] strategies;
-		public String title;
-	}
-	
 	private void init(NeuralNetworkParams params){
 		if(params.title != null) dv = new DataVisualizer(params.title);
-		if(params.bias == null || params.bias.length != params.layers.length){
-			params.bias = new int[params.layers.length];
+		if(params.bias == null || params.bias.length != params.getLayers().length){
+			params.bias = new int[params.getLayers().length];
 		}
 		if(params.strategies == null){
-			params.strategies = ActivationStrategy.fillArray(SigmoidActivationStrategy.class, params.layers.length);
+			params.strategies = ActivationStrategy.fillArray(SigmoidActivationStrategy.class, params.getLayers().length);
 		}
-		this.layers = new NeuronLayer[params.layers.length];
+		this.layers = new NeuronLayer[params.getLayers().length];
 		for(int i = 0; i < layers.length; i++){
-			this.layers[i] = new NeuronLayer(params.layers[i],params.bias[i], params.strategies[i]);
+			this.layers[i] = new NeuronLayer(params.getLayers()[i],params.bias[i], params.strategies[i]);
 		}
 		
 		new File("results").mkdir();
@@ -194,45 +185,27 @@ public class NeuralNetwork implements java.io.Serializable{
 	}
 	
 	/**
-	 * Train neural network with supplied parameters
-	 * @param inputs Inputs to train with
-	 * @param outputs Outputs corresponding to inputs
-	 * @param learningRate Learning rate
-	 * @param momentum Momentum
-	 * @param maxIterations Maximum iterations of training to run.
+	 * Train neural network with supplied paramaters
+	 * @param params Params object containing all the parameters, including inputs, outputs, learningRate, momentum, classification, batchSize, and numThreads.
 	 */
-	public void train(double[][] inputs, double[][] outputs, double learningRate, double momentum, double errorThreshold){
-		train(inputs, outputs, learningRate, momentum, errorThreshold, false, inputs.length);
-	}
-	
-	/**
-	 * Train neural network with supplied parameters
-	 * @param inputs Inputs to train with
-	 * @param outputs Outputs corresponding to inputs
-	 * @param learningRate Learning rate
-	 * @param momentum Momentum
-	 * @param maxIterations Maximum iterations of training to run.
-	 * @param classification use softmax?
-	 * @param batch size of batch to use for Stochastic Gradient Descent
-	 */
-	public void train(final double[][] allInputs, final double[][] allOutputs, final double learningRate, final double momentum, final double errorThreshold, final boolean classification, int batch){
-		trainedWithSoftMax = classification;
+	public void train(TrainParams params){
+		trainedWithSoftMax = params.classification;
 		int runs = 0;
 		double startError = 0;
 		stopButton();
 		Queue<Double> prevErrors = new LinkedList<>();
 		while(true){
-			Data data = getBatch(allInputs, allOutputs, batch);
+			Data data = getBatch(params.inputs, params.outputs, params.batchSize);
 			double[][] inputs = data.input;
 			double[][] outputs = data.output;
 			HashMap<Dendrite,Double> dendriteDeltaMap = new HashMap<>();
 			double errorSum = 0;
 			for(int i = 0; i < inputs.length; i++){
-				double[] results = evaluate(inputs[i], classification);
+				double[] results = evaluate(inputs[i], params.classification);
 				double error = calculateAggregateError(results,outputs[i]); //calculate mean squared error
 				errorSum += error;
 				getErrors(results, outputs[i]);
-				updateWeights(dendriteDeltaMap, learningRate, momentum);
+				updateWeights(dendriteDeltaMap, params.learningRate, params.momentum);
 			}
 			double batchError = errorSum/inputs.length;
 			prevErrors.add(batchError);
@@ -242,10 +215,10 @@ public class NeuralNetwork implements java.io.Serializable{
 			}
 			double error = -1;
 			error = getAvgError(prevErrors);
-			if(dv != null)dv.addError(error, errorThreshold);
+			if(dv != null)dv.addError(error, params.errorThreshold);
 			System.out.println("Epoch: " + runs + ", error: " + batchError + ", avgError: " + error);
 			runs++;
-			if(error <= errorThreshold && runs > 100 || stop) break;
+			if(error <= params.errorThreshold && runs > 100 || stop) break;
 		}
 		System.out.println("\nFinished!");
 		System.out.println("Start error: " + startError);
@@ -283,7 +256,7 @@ public class NeuralNetwork implements java.io.Serializable{
 	}
 	
 	private String getCalendarAsString(Calendar c){
-		SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy");
+		SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy_hh-mm");
 		return sdf.format(c.getTime());
 	}
 	
@@ -450,7 +423,7 @@ public class NeuralNetwork implements java.io.Serializable{
 					if(dendriteDeltaMap.get(dendrite) != null){
 						delta += momentum * dendriteDeltaMap.get(dendrite);
 					}
-					dendriteDeltaMap.put(dendrite, -delta);
+					dendriteDeltaMap.put(dendrite, delta);
 					dendrite.adjustWeight(-delta);
 				}
 			}

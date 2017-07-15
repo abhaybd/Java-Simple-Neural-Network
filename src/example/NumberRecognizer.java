@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Random;
 
 import com.coolioasjulio.neuralnetwork.NeuralNetwork;
+import com.coolioasjulio.neuralnetwork.TrainParams;
 import com.coolioasjulio.neuralnetwork.utils.ImageUtils;
 
 public class NumberRecognizer {
@@ -24,7 +25,8 @@ public class NumberRecognizer {
 		}
 		int size = inputs[0].length;
 		NeuralNetwork network = new NeuralNetwork(new int[]{size, size/2, 28, 1}, new int[]{1,1,0});
-		network.train(inputs, outputs, 0.5, 0.9, 0.05);
+		TrainParams tp = new TrainParams(inputs, outputs, 0.5, 0.9, 0.05);
+		network.train(tp);
 		guess(network, number);
 	}
 	

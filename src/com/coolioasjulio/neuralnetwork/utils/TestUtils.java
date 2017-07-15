@@ -3,6 +3,7 @@ package com.coolioasjulio.neuralnetwork.utils;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import com.coolioasjulio.neuralnetwork.NeuralNetwork;
@@ -37,6 +38,7 @@ public class TestUtils {
 	}
 	
 	public static void guessAll(NeuralNetwork network, BufferedImage[] images, double[][] output, PrintStream out){
+		System.out.println("sample output: " + Arrays.toString(output[0]));
 		int correct = 0;
 		out.println("Starting");
 		HashMap<Integer,Integer> record = new HashMap<>();
@@ -44,6 +46,8 @@ public class TestUtils {
 			double[] guess = network.guess(ImageUtils.getDataFromBufferedImage(images[i]));
 			double[] label = output[i];
 			int correctIndex = maxIndex(label);
+			System.out.println("Guessing: " + correctIndex);
+			System.out.println(Arrays.toString(guess));
 			if(maxIndex(guess) == correctIndex){
 				correct++;
 			}
