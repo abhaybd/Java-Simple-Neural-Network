@@ -420,7 +420,7 @@ public class NeuralNetwork implements java.io.Serializable{
 			for(Neuron neuron:layer.getNeurons()){
 				for(Dendrite dendrite:neuron.getInputs()){
 					double delta = learningRate * neuron.getError() * dendrite.getStart().getOutput();
-					if(dendriteDeltaMap.get(dendrite) != null){
+					if(dendriteDeltaMap.containsKey(dendrite)){
 						delta += momentum * dendriteDeltaMap.get(dendrite);
 					}
 					dendriteDeltaMap.put(dendrite, delta);

@@ -1,9 +1,7 @@
 package example;
 
 import java.awt.image.BufferedImage;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.Arrays;
 
 import com.coolioasjulio.neuralnetwork.NeuralNetwork;
@@ -38,9 +36,5 @@ public class DigitRecognizer {
 		network.train(tp);
 		Guesser.guessAll(network, "data/t10k-images.idx3-ubyte", "data/t10k-labels.idx1-ubyte");
 		network.writeToDisk("recognizer.net");
-		PrintStream out = new PrintStream(new FileOutputStream("weights.log"));
-		network.printWeights(out);
-		out.close();
-		System.out.println("Printed weights!");
 	}
 }
