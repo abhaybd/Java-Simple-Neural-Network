@@ -190,12 +190,13 @@ public class NeuralNetwork implements java.io.Serializable{
 	 */
 	public void train(TrainParams params){
 		trainedWithSoftMax = params.classification;
+		int batchSize = params.batchSize == 0?params.inputs.length:params.batchSize;
 		int runs = 0;
 		double startError = 0;
 		stopButton();
 		Queue<Double> prevErrors = new LinkedList<>();
 		while(true){
-			Data data = getBatch(params.inputs, params.outputs, params.batchSize);
+			Data data = getBatch(params.inputs, params.outputs, batchSize);
 			double[][] inputs = data.input;
 			double[][] outputs = data.output;
 			HashMap<Dendrite,Double> dendriteDeltaMap = new HashMap<>();

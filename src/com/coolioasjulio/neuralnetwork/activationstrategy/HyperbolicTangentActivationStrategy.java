@@ -15,7 +15,7 @@ public class HyperbolicTangentActivationStrategy implements ActivationStrategy {
 
 	@Override
 	public double derivativeOutput(double output) {
-		return 1.0 - Math.pow(output, 2);
+		return 1/Math.cosh(output);
 	}
 
 }
