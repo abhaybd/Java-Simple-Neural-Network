@@ -241,6 +241,7 @@ public class NeuralNetwork implements java.io.Serializable{
 		JButton save = new JButton("Save network");
 		button.addActionListener(e -> {
 			stop = true;
+			frame.dispose();
 		});
 		save.addActionListener(e -> {
 			try {
