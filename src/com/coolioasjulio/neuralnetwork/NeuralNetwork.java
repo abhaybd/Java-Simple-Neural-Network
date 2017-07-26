@@ -1,5 +1,6 @@
 package com.coolioasjulio.neuralnetwork;
 
+import java.awt.Dimension;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -19,9 +20,12 @@ import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 import com.coolioasjulio.neuralnetwork.activationstrategy.ActivationStrategy;
 import com.coolioasjulio.neuralnetwork.activationstrategy.SigmoidActivationStrategy;
@@ -94,9 +98,10 @@ public class NeuralNetwork implements java.io.Serializable{
 		return null;
 	}
 	
-	protected NeuronLayer[] layers;
+	private NeuronLayer[] layers;
 	private DataVisualizer dv = null;
 	private boolean trainedWithSoftMax = false;
+	private TrainParams params;
 	
 	/**
 	 * Instantiate Neural Network with specified layers and bias.
@@ -189,11 +194,12 @@ public class NeuralNetwork implements java.io.Serializable{
 	 * @param params Params object containing all the parameters, including inputs, outputs, learningRate, momentum, classification, batchSize, and numThreads.
 	 */
 	public void train(TrainParams params){
+		this.params = params;
 		trainedWithSoftMax = params.classification;
 		int batchSize = params.batchSize == 0?params.inputs.length:params.batchSize;
 		int runs = 0;
 		double startError = 0;
-		stopButton();
+		openTrainingFrame();
 		Queue<Double> prevErrors = new LinkedList<>();
 		while(true){
 			Data data = getBatch(params.inputs, params.outputs, batchSize);
@@ -221,6 +227,7 @@ public class NeuralNetwork implements java.io.Serializable{
 			runs++;
 			if(error <= params.errorThreshold && runs > 100 || stop) break;
 		}
+		frame.dispose();
 		System.out.println("\nFinished!");
 		System.out.println("Start error: " + startError);
 	}
@@ -234,12 +241,13 @@ public class NeuralNetwork implements java.io.Serializable{
 	}
 	
 	boolean stop = false;
+	private JFrame frame;
 	
-	private void stopButton(){
-		JFrame frame = new JFrame();
-		JButton button = new JButton("Stop");
+	private void openTrainingFrame(){
+		frame = new JFrame();
+		JButton stopButton = new JButton("Stop");
 		JButton save = new JButton("Save network");
-		button.addActionListener(e -> {
+		stopButton.addActionListener(e -> {
 			stop = true;
 			frame.dispose();
 		});
@@ -250,11 +258,45 @@ public class NeuralNetwork implements java.io.Serializable{
 				e1.printStackTrace();
 			}
 		});
+		
+		JPanel hyperParameters = new JPanel();
+		JTextField learningRate = new JTextField(String.valueOf(params.learningRate));
+		JTextField momentum = new JTextField(String.valueOf(params.momentum));
+		JTextField errorThreshold = new JTextField(String.valueOf(params.errorThreshold));
+		hyperParameters.setLayout(new BoxLayout(hyperParameters, BoxLayout.X_AXIS));
+		hyperParameters.add(learningRate);
+		hyperParameters.add(momentum);
+		hyperParameters.add(errorThreshold);
+		JButton applyParameters = new JButton("Apply");
+		applyParameters.addActionListener(e -> {
+			if(isDouble(learningRate.getText())){
+				params.learningRate = Double.parseDouble(learningRate.getText());
+			}
+			if(isDouble(momentum.getText())){
+				params.momentum = Double.parseDouble(momentum.getText());
+			}
+			if(isDouble(errorThreshold.getText())){
+				params.errorThreshold = Double.parseDouble(errorThreshold.getText());
+			}
+		});
+		
 		frame.setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
-		frame.add(button);
+		frame.add(stopButton);
 		frame.add(save);
+		frame.add(Box.createRigidArea(new Dimension(0,20)));
+		frame.add(hyperParameters);
+		frame.add(applyParameters);
 		frame.pack();
 		frame.setVisible(true);
+	}
+	
+	private boolean isDouble(String s){
+		try{
+			Double.parseDouble(s);
+			return true;
+		} catch(NumberFormatException | NullPointerException e){
+			return false;
+		}
 	}
 	
 	private String getCalendarAsString(Calendar c){
