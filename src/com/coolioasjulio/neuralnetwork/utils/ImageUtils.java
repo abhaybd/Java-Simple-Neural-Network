@@ -37,16 +37,33 @@ public class ImageUtils {
 	}
 	
 	/**
-	 * Get labels according to the idx1-ubyte file format
-	 * @param path to label file
-	 * @return double[][] of the labels
+	 * Returns labels as double[][]. 2nd dimension double[] consists of all zeros, except for the designated output as a 1.
+	 * @param path Path of the file
+	 * @param numOutputs Number of possible output (length of 2nd dimension double[]
+	 * @return double[][] of the outputs
 	 * @throws IOException
 	 */
-	public static double[][] readLabels(String path, int size) throws IOException{
+	public static double[][] readLabels(String path, int numOutputs) throws IOException{
+		return readLabels(path, -1, numOutputs);
+	}
+	
+	/**
+	 * Returns labels as double[][]. 2nd dimension double[] consists of all zeros, except for the designated output as a 1.
+	 * @param path Path of the file
+	 * @param length number of labels to read. If length < 0 or length > numLabels all labels are returned
+	 * @param numOutputs Number of possible output (length of 2nd dimension double[]
+	 * @return double[][] of the outputs
+	 * @throws IOException
+	 */
+	public static double[][] readLabels(String path, int length, int numOutputs) throws IOException{
 		try(DataInputStream in = new DataInputStream(new FileInputStream(path))){
-			in.readInt();
+			int magic = in.readInt();
+			if(magic != 2049){
+				throw new IOException("Supplied file must be in the idx1-ubyte file format with magic number 2049");
+			}
 			int numLabels = in.readInt();
-			double[][] labels = new double[numLabels][size];
+			if(length > 0 && length <= numLabels) numLabels = length;
+			double[][] labels = new double[numLabels][numOutputs];
 			for(int i = 0; i < labels.length; i++){
 				int val = in.read();
 				labels[i][val] = 1;
@@ -59,15 +76,29 @@ public class ImageUtils {
 	}
 	
 	/**
-	 * Gets images from file in idx3-ubyte file format
-	 * @param path to image file
-	 * @return BufferedImage[] of all the images
+	 * Reads all images from supplied path in idx3-ubyte file format.
+	 * @param path path to image file
+	 * @return BufferedImage[] of all images
 	 * @throws IOException
 	 */
 	public static BufferedImage[] readImages(String path) throws IOException{
+		return readImages(path, -1);
+	}
+	
+	/**
+	 * Reads `length` images from supplied path in idx3-ubyte file format. If length < 0 or length > numImages, the entire file will be returned.
+	 * @param path to image file
+	 * @return BufferedImage[] of length `length` containing the read images
+	 * @throws IOException
+	 */
+	public static BufferedImage[] readImages(String path, int length) throws IOException{
 		try(DataInputStream in = new DataInputStream(new FileInputStream(path))){
-			in.readInt();
+			int magic = in.readInt();
+			if(magic != 2051){
+				throw new IOException("Supplied file must be in the idx3-ubyte file format with magic number 2051");
+			}
 			int numImages = in.readInt();
+			if(length > 0 && length <= numImages) numImages = length;
 			int rows = in.readInt();
 			int cols = in.readInt();
 			
@@ -224,32 +255,6 @@ public class ImageUtils {
 	 */
 	public static double grayScale(int rgb){
 		return grayScale(new Color(rgb));
-	}
-	
-	/**
-	 * Returns a double[] of length 5 which represents the supplied image. NOTE: This abstracts away much of the intricacies of the data.
-	 * @param img
-	 * @return Index 0 is width of the x-coordinate of the center of the bounding box divided by the width of the image. Index 1 is the y-coord of the bounding box divided by height of image. Index 2 is width of bounding box divided by width of image. Index 3 is height of bounding box divided by height of image. Index 4 is number of non-black pixels in image.
-	 */
-	public static double[] getCondensedData(BufferedImage img){
-		Area a = new Area();
-		int numPixels = 0;
-		for(int y = 0; y < img.getHeight(); y++){
-			for(int x = 0; x < img.getWidth(); x++){
-				if(!new Color(img.getRGB(x, y)).equals(Color.BLACK)){
-					numPixels++;
-					a.add(new Area(new Rectangle(x,y,1,1)));
-				}
-			}
-		}
-		Rectangle rect = a.getBounds();
-		double[] toReturn = new double[5];
-		toReturn[0] = rect.getCenterX()/(double)img.getWidth();;
-		toReturn[1] = rect.getCenterY()/(double)img.getHeight();
-		toReturn[2] = rect.getWidth()/(double)img.getWidth();
-		toReturn[3] = rect.getHeight()/(double)img.getHeight();
-		toReturn[4] = numPixels/(double)(img.getHeight()*img.getWidth());
-		return toReturn;
 	}
 
 	private static double[] otsu(double[] original){

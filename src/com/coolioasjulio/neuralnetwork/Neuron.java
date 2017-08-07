@@ -68,7 +68,7 @@ public class Neuron implements java.io.Serializable{
 		return strategy.derivativeOutput(output);
 	}
 	
-	public void setUpDendrites(NeuronLayer nextLayer, boolean isBias){
+	public void setUpDendrites(NeuronLayer nextLayer){
 		dendrites = new Dendrite[nextLayer.getNeurons().length];
 		Random rand = new Random();
 		for(int i = 0; i < dendrites.length; i++){

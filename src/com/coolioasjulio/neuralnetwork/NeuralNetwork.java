@@ -13,12 +13,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Random;
 import java.util.Scanner;
-import java.util.Set;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -41,7 +41,10 @@ public class NeuralNetwork implements java.io.Serializable{
 			{1,1}
 		};
 		double[][] output = new double[][]{{1},{1},{0},{0}};
-		NeuralNetwork net = new NeuralNetwork(new int[]{inputs[0].length,2,1}, new int[]{1,1,0}, "XOR");
+		NeuralNetworkParams params = new NeuralNetworkParams(new int[]{2,2,1});
+		params.bias = new int[]{1,1,0};
+		params.strategies = ActivationStrategy.fillArray(SigmoidActivationStrategy.class, 3);
+		NeuralNetwork net = new NeuralNetwork(params);
 		TrainParams tp = new TrainParams(inputs, output, 0.2, 0.9, 0.0001);
 		net.train(tp);
 		//NeuralNetwork net = NeuralNetwork.loadFromDisk("XOR.net");
@@ -196,13 +199,12 @@ public class NeuralNetwork implements java.io.Serializable{
 	public void train(TrainParams params){
 		this.params = params;
 		trainedWithSoftMax = params.classification;
-		int batchSize = params.batchSize == 0?params.inputs.length:params.batchSize;
 		int runs = 0;
 		double startError = 0;
 		openTrainingFrame();
 		Queue<Double> prevErrors = new LinkedList<>();
 		while(true){
-			Data data = getBatch(params.inputs, params.outputs, batchSize);
+			Data data = getBatch(params.trainingData, params.batchSize);
 			double[][] inputs = data.input;
 			double[][] outputs = data.output;
 			HashMap<Dendrite,Double> dendriteDeltaMap = new HashMap<>();
@@ -337,33 +339,27 @@ public class NeuralNetwork implements java.io.Serializable{
 	
 	static class Data { public double[][] input, output; }
 	
-	private Data getBatch(double[][] inputs, double[][] outputs, int batch){
-		Data data = new Data();
-		batch = Math.min(inputs.length, batch);
-		if(batch == inputs.length){
-			data.input = inputs;
-			data.output = outputs;
-			return data;
-		}
-		double[][] dataInput = new double[batch][];
-		double[][] dataOutput = new double[batch][];
-		Random random = new Random();
-		Set<Integer> picked = new HashSet<Integer>();
-		int currentIndex = 0;
+	private Data getBatch(Map<double[],List<double[]>> fullData, int batch){
+		List<double[]> keys = new ArrayList<>(fullData.keySet());
+		Random rand = new Random();
+		
+		double[][] inputs = new double[batch][];
+		double[][] outputs = new double[batch][];
+		
 		for(int i = 0; i < batch; i++){
-			boolean done = false;
-			while(!done){
-				int index = random.nextInt(inputs.length);
-				done = picked.add(index);
-				if(done){
-					dataInput[currentIndex] = inputs[index];
-					dataOutput[currentIndex] = outputs[index];
-					currentIndex++;
-				}				
+			int index = rand.nextInt(keys.size());
+			double[] key = keys.remove(index);
+			List<double[]> cases = fullData.get(key);
+			inputs[i] = cases.get(rand.nextInt(cases.size()));
+			outputs[i] = key;
+			if(keys.size() == 0){
+				keys = new ArrayList<>(fullData.keySet());
 			}
 		}
-		data.input = dataInput;
-		data.output = dataOutput;
+		
+		Data data = new Data();
+		data.input = inputs;
+		data.output = outputs;
 		return data;
 	}
 	

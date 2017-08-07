@@ -34,10 +34,10 @@ public class NeuronLayer implements java.io.Serializable{
 	
 	public void setRandomWeights(NeuronLayer next){		
 		for(Neuron neuron:neurons){
-			neuron.setUpDendrites(next,false);
+			neuron.setUpDendrites(next);
 		}
 		for(Neuron neuron:bias){
-			neuron.setUpDendrites(next, true);
+			neuron.setUpDendrites(next);
 		}
 	}
 	
