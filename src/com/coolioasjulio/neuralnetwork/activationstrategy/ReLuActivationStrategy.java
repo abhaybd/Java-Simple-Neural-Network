@@ -1,21 +1,16 @@
 package com.coolioasjulio.neuralnetwork.activationstrategy;
 
+import java.util.Arrays;
+
 public class ReLuActivationStrategy implements ActivationStrategy {
 
-	@Override
-	public double activate(double weightedSum) {
-		return Math.max(weightedSum, 0);
-	}
+    @Override
+    public double[] activate(double[] weightedSums) {
+        return Arrays.stream(weightedSums).map(x -> Math.max(0, x)).toArray();
+    }
 
-	@Override
-	public double derivativeWeightedSum(double weightedSum) {
-		return derivativeOutput(activate(weightedSum));
-	}
-
-	@Override
-	public double derivativeOutput(double output) {
-		if(output <= 0) return 0;
-		return 1;
-	}
-
+    @Override
+    public double[] derivativeOutput(double[] output) {
+        return Arrays.stream(output).map(x -> x <= 0 ? 0 : 1).toArray();
+    }
 }

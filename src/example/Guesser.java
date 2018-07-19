@@ -10,73 +10,72 @@ import com.coolioasjulio.neuralnetwork.NeuralNetwork;
 import com.coolioasjulio.neuralnetwork.utils.ImageUtils;
 
 public class Guesser {
-	
-	private static int maxIndex(double[] arr){
-		int maxIndex = 0;
-		double max = arr[0];
-		for(int i = 0; i < arr.length; i++){
-			if(arr[i] > max){
-				max = arr[i];
-				maxIndex = i;
-			}
-		}
-		return maxIndex;
-	}
-	
-	public static void guessAll(NeuralNetwork network, String imagePath, String labelPath){
-		try{
-			BufferedImage[] images = ImageUtils.readImages(imagePath);
-			double[][] output = ImageUtils.readLabels(labelPath, 10);
-			guessAll(network,images,output);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public static void guessAll(NeuralNetwork network, BufferedImage[] images, double[][] output){
-		guessAll(network, images, output, System.out);
-	}
-	
-	public static void guessAll(NeuralNetwork network, BufferedImage[] images, double[][] output, PrintStream out){
-		int correct = 0;
-		System.out.println("Starting");
-		HashMap<Integer,Integer> record = new HashMap<>();
-		for(int i = 0; i < images.length; i++){
-			double[] guess = network.guess(ImageUtils.getDataFromBufferedImage(images[i]));
-			double[] label = output[i];
-			int correctIndex = maxIndex(label);
-			if(maxIndex(guess) == correctIndex){
-				correct++;
-			}
-			else{
-				record.putIfAbsent(correctIndex, 0);
-				record.put(correctIndex,record.get(correctIndex)+1);
-			}
-		}
-		out.println("Got " + correct + " out of " + images.length);
-		out.println(100d*(double)correct/(double)images.length + "%");
-		out.println(record.toString());	
-	}
-	
-	public static void guessAllSpecific(NeuralNetwork network, int toGuess){
-		try{
-			BufferedImage[] images = ImageUtils.readImages("data/t10k-images.idx3-ubyte");
-			double[][] output = ImageUtils.readLabels("data/t10k-labels.idx1-ubyte", 10);
-			int correct = 0;
-			System.out.println("Starting");
-			for(int i = 0; i < images.length; i++){
-				if(Integer.parseInt(Arrays.toString(output[i]).replaceAll("\\D|(\\.\\d)", ""),2) == toGuess){
-					double[] guess = network.guess(ImageUtils.getDataFromBufferedImage(images[i]));
-					if(maxIndex(guess) == maxIndex(output[i])){
-						correct++;
-					}
-				}
-			}
-			System.out.println("Got " + correct + " out of " + images.length);
-			System.out.println(100.0 * (double)correct/(double)images.length + "%");
-			
-		} catch(IOException e){
-			e.printStackTrace();
-		}
-	}
+
+    private static int maxIndex(double[] arr) {
+        int maxIndex = 0;
+        double max = arr[0];
+        for (int i = 0; i < arr.length; i++) {
+            if (arr[i] > max) {
+                max = arr[i];
+                maxIndex = i;
+            }
+        }
+        return maxIndex;
+    }
+
+    public static void guessAll(NeuralNetwork network, String imagePath, String labelPath) {
+        try {
+            BufferedImage[] images = ImageUtils.readImages(imagePath);
+            double[][] output = ImageUtils.readLabels(labelPath, 10);
+            guessAll(network, images, output);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void guessAll(NeuralNetwork network, BufferedImage[] images, double[][] output) {
+        guessAll(network, images, output, System.out);
+    }
+
+    public static void guessAll(NeuralNetwork network, BufferedImage[] images, double[][] output, PrintStream out) {
+        int correct = 0;
+        System.out.println("Starting");
+        HashMap<Integer, Integer> record = new HashMap<>();
+        for (int i = 0; i < images.length; i++) {
+            double[] guess = network.guess(ImageUtils.getDataFromBufferedImage(images[i]));
+            double[] label = output[i];
+            int correctIndex = maxIndex(label);
+            if (maxIndex(guess) == correctIndex) {
+                correct++;
+            } else {
+                record.putIfAbsent(correctIndex, 0);
+                record.put(correctIndex, record.get(correctIndex) + 1);
+            }
+        }
+        out.println("Got " + correct + " out of " + images.length);
+        out.println(100d * (double) correct / (double) images.length + "%");
+        out.println(record.toString());
+    }
+
+    public static void guessAllSpecific(NeuralNetwork network, int toGuess) {
+        try {
+            BufferedImage[] images = ImageUtils.readImages("data/t10k-images.idx3-ubyte");
+            double[][] output = ImageUtils.readLabels("data/t10k-labels.idx1-ubyte", 10);
+            int correct = 0;
+            System.out.println("Starting");
+            for (int i = 0; i < images.length; i++) {
+                if (Integer.parseInt(Arrays.toString(output[i]).replaceAll("\\D|(\\.\\d)", ""), 2) == toGuess) {
+                    double[] guess = network.guess(ImageUtils.getDataFromBufferedImage(images[i]));
+                    if (maxIndex(guess) == maxIndex(output[i])) {
+                        correct++;
+                    }
+                }
+            }
+            System.out.println("Got " + correct + " out of " + images.length);
+            System.out.println(100.0 * (double) correct / (double) images.length + "%");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
