@@ -45,15 +45,10 @@ public class NeuralNetwork implements java.io.Serializable {
         layers.add(new DenseLayer(1, new SigmoidActivationStrategy(), false));
         NeuralNetwork net = new NeuralNetwork(layers.toArray(new DenseLayer[0]));
 
-        TrainParams tp = new TrainParams(inputs, output, 0.2, 0.9, 0.0001);
+        TrainParams tp = new TrainParams(inputs, output, 0.02, 0.9, 0.001);
         net.train(tp);
         net.printWeights(System.out);
 
-        try {
-            net.writeToDisk("XOR.net");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         String response = "";
         Scanner input = new Scanner(System.in);
         while (!(response = input.nextLine()).equals("quit")) {
@@ -118,11 +113,11 @@ public class NeuralNetwork implements java.io.Serializable {
         double startError = 0;
         openTrainingFrame();
         Queue<Double> prevErrors = new LinkedList<>();
+        HashMap<Dendrite, Double> dendriteDeltaMap = new HashMap<>();
         while (true) {
             Data data = getBatch(params.trainingData, params.batchSize);
             double[][] inputs = data.input;
             double[][] outputs = data.output;
-            HashMap<Dendrite, Double> dendriteDeltaMap = new HashMap<>();
             double errorSum = 0;
             for (int i = 0; i < inputs.length; i++) {
                 double[] results = evaluate(inputs[i]);
@@ -137,12 +132,11 @@ public class NeuralNetwork implements java.io.Serializable {
             while (prevErrors.size() > 25) {
                 prevErrors.remove();
             }
-            double error = -1;
-            error = getAvgError(prevErrors);
+            double error = getAvgError(prevErrors);
             if (dv != null) dv.addError(error, params.errorThreshold);
-            System.out.println("Epoch: " + runs + ", error: " + batchError + ", avgError: " + error);
+            System.out.print("\rEpoch: " + runs + ", error: " + batchError + ", avgError: " + error);
             runs++;
-            if (error <= params.errorThreshold && runs > 100 || stop) break;
+            if (error <= params.errorThreshold) break;
         }
         frame.dispose();
         System.out.println("\nFinished!");
@@ -280,8 +274,8 @@ public class NeuralNetwork implements java.io.Serializable {
         //cycle through all the neurons
         for (int i = 0; i < layers.length; i++) {
             if (i != 0) layers[i].activate();
-            for (Neuron neuron : layers[i].getNeurons()) {
-                if (i != layers.length - 1) {
+            if (i != layers.length - 1) {
+                for (Neuron neuron : layers[i].getNeurons()) {
                     for (Dendrite dendrite : neuron.getDendrites()) {
                         //Increment the weightedSum of the destination neuron by the source neuron output scaled by the weight
                         dendrite.getEnd().weightedSum += neuron.output * dendrite.weight;
@@ -295,12 +289,7 @@ public class NeuralNetwork implements java.io.Serializable {
             }
         }
 
-        //get results
-        double[] results = new double[layers[layers.length - 1].getNeurons().length];
-        for (int i = 0; i < results.length; i++) {
-            results[i] = layers[layers.length - 1].getNeurons()[i].output;
-        }
-        return results;
+        return layers[layers.length-1].getFlattenedOutput();
     }
 
     private void randomWeights() {
@@ -318,7 +307,7 @@ public class NeuralNetwork implements java.io.Serializable {
             }
             for (int j = 0; j < neurons.size(); j++) {
                 Neuron neuron = neurons.get(j);
-                double neuronError = 0;
+                double neuronError;
                 if (i == layers.length - 1) {
                     neuronError = neuron.derivative * (results[j] - expectedResults[j]);
                 } else {
